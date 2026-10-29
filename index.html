@@ -80,8 +80,9 @@ svg{display:block}
 /* ── loader: the works orbit while the count runs, stack into the hero box, the parentheses close round it and it lands ── */
 .ld{position:fixed;inset:0;z-index:65;pointer-events:none}
 .lg{position:absolute;inset:0;will-change:transform}
-.ld i{position:absolute;left:50%;top:50%;width:var(--bw);height:var(--bh);margin:calc(var(--bh)/-2) 0 0 calc(var(--bw)/-2);border-radius:16px;will-change:transform}
+.lg i{position:absolute;left:50%;top:50%;width:var(--bw);height:var(--bh);margin:calc(var(--bh)/-2) 0 0 calc(var(--bw)/-2);border-radius:16px;will-change:transform}
 .ld .par{position:absolute;left:50%;top:50%;color:var(--tx);opacity:0;will-change:transform,opacity}
+.bar{position:absolute;left:0;top:0;width:100%;height:1px;background:#fff;transform:scaleX(0);transform-origin:0 0;will-change:transform}
 .pct{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:40px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 #page.loading{overflow:hidden}
 .loading .intro>*,.loading .row>*,.loading .clock{opacity:0}
@@ -145,7 +146,7 @@ svg{display:block}
   .tool svg{transform:none}
   .row,.ld{--bw:120px;--bh:68px}
   .row{top:auto;bottom:9%;gap:8px;font-size:22px}
-  .box i,.ld i{border-radius:12px}
+  .box i,.lg i{border-radius:12px}
   .pct{font-size:28px}
   .title{font-size:14.5vw}
   .meta{margin-top:10px;font-size:13px}
@@ -164,7 +165,7 @@ svg{display:block}
 <svg id="wf" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"></svg>
 <canvas id="water" aria-hidden="true"></canvas>
 <div id="glass" aria-hidden="true"></div>
-<div class="ld" id="ld" aria-hidden="true"><div class="lg" id="lg"><span class="par hd">(</span><span class="par hd">)</span></div><p class="pct hd" id="pct">0%</p></div>
+<div class="ld" id="ld" aria-hidden="true"><div class="lg" id="lg"><span class="par hd">(</span><span class="par hd">)</span></div><p class="pct hd" id="pct">0%</p><i class="bar" id="bar"></i></div>
 
 <main id="page" class="loading">
   <div id="rw">
@@ -473,7 +474,7 @@ const booted=(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{r
       · 3 the parentheses close in from the sides · 4 the group lands on the hero box · 5 the hero content follows */
 {
   const HERO={_rv:[...$$('#row>span:not([class])'),...$('#intro').children,$('.clock')]};reveal(HERO,false);
-  const N=10,ld=$('#ld'),lg=$('#lg'),pct=$('#pct'),done=()=>{page.classList.remove('loading');ld.remove()};
+  const N=10,ld=$('#ld'),lg=$('#lg'),pct=$('#pct'),bar=$('#bar'),done=()=>{page.classList.remove('loading');ld.remove()};
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)booted.then(()=>{done();reveal(HERO,true)});
   else{
     lg.insertAdjacentHTML('afterbegin',COLORS.slice(0,N).map((c,i)=>`<i style="background:${c};z-index:${N-i}"></i>`).join(''));   /* the box's own colour ends on top */
@@ -491,7 +492,8 @@ const booted=(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{r
       ang+=dt*.0011*(1+2*clamp(b/900));
       const p=ok&&t>=2500?1:Math.min(.99,ease(clamp(t/2500))),v=Math.round(p*100);
       if(v!==shown){shown=v;pct.textContent=v+'%'}
-      pct.style.opacity=1-clamp(b/300);
+      bar.style.transform=`scaleX(${p})`;   /* top line draws left → right with the count */
+      pct.style.opacity=bar.style.opacity=1-clamp(b/300);
       cards.forEach((el,i)=>{
         const a=out(clamp((t-120-i*70)/700)),q=b<0?0:ease(clamp((b-(N-1-i)*35)/700)),th=ang+i*2*Math.PI/N-Math.PI/2,r=R*(1-q);
         el.style.transform=`translate3d(${r*Math.cos(th)}px,${r*Math.sin(th)}px,0) scale(${lerp(s0,1,q)*a})`;
