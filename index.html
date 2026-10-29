@@ -37,32 +37,28 @@ svg{display:block}
 .t{font-size:14px;color:var(--dim);white-space:nowrap}
 .btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap}
 
-/* ── liquid hover (button, social icons): a wave edge rises from below, its crests travel while it rises,
+/* ── liquid hover (button, social icons, tool icons): a wave edge rises from below, its crests travel while it rises,
       and the same motion plays backwards when the cursor leaves. GPU-only: translate + transform ── */
-.btn,.soc a{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
-.btn::after,.soc a::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
+.btn,.soc a,.tool{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
+.btn::after,.soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0/33.3333% 14px,linear-gradient(#fff,#fff) 0 12px/100% calc(100% - 12px) no-repeat;
   translate:0 0;transition:translate var(--fill) .08s;animation:wv 1.5s linear infinite}
-.btn:hover::after,.btn:active::after,.soc a:hover::after,.soc a:active::after{translate:0 -100%}
-.btn:hover,.btn:active,.soc a:hover,.soc a:active{color:var(--bg)}
+.btn:hover::after,.btn:active::after,.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
+.btn:hover,.btn:active,.soc a:hover,.soc a:active,.tip:hover .tool{color:var(--bg)}
 @keyframes wv{to{transform:translateX(-33.3333%)}}
 
-/* ── "Hire me": the same water fill as the buttons, clipped to the letters ── */
-@property --fy{syntax:"<length>";inherits:false;initial-value:30px}
-@property --wx{syntax:"<length>";inherits:false;initial-value:0px}
-.wt{--fy:30px;position:relative;width:max-content;padding-bottom:2px;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='%230e0e10'/%3E%3C/svg%3E") repeat-x var(--wx) calc(var(--fy) - 7px)/24px 8px,linear-gradient(var(--bg),var(--bg)) 0 var(--fy)/100% 100% no-repeat,#fff;
-  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
-  transition:--fy var(--fill);animation:lw .9s linear infinite paused}
 /* footer text links scramble on hover (see script); the width is held so nothing shifts */
 .links a{width:max-content;white-space:nowrap}
-@keyframes lw{to{--wx:24px}}
 
 /* ── content ── */
 .tools{display:flex;gap:13px}
 .tool{width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;gap:2px}
 .tool svg{transform:scale(1.15)}
 .tool .e{margin-top:4px}
+.tip{position:relative;display:block}
+.tip>i{position:absolute;left:50%;bottom:calc(100% + 10px);padding:7px 12px;border-radius:10px;background:#18181a;font:400 13px var(--bd);font-style:normal;
+  color:#fff;white-space:nowrap;pointer-events:none;opacity:0;translate:-50% 6px;transition:opacity .3s ease,translate .5s cubic-bezier(.16,1,.3,1)}
+.tip:hover>i,.tip:focus-within>i{opacity:1;translate:-50% 0}
 .soc{display:flex;gap:10px}
 .soc a{width:48px;height:48px;border-radius:52px;background:rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:#fff}
 .card .thumb{position:relative;overflow:hidden;background:var(--card);aspect-ratio:16/9;border-radius:16px}
@@ -102,16 +98,13 @@ svg{display:block}
 .links{display:grid;gap:4px}
 .foot .c1{left:calc(var(--m) - 32px)}.foot .c2{left:28.8%}.foot .c3{left:63.2%;top:58px}
 .foot .big{position:absolute;left:calc(var(--m) - 32px);bottom:48px;font-size:13.5vw;letter-spacing:-.06em;line-height:.9;white-space:nowrap}
-.foot .arrow{position:absolute;right:calc(var(--m) - 32px);bottom:64px;display:flex;align-items:center;gap:28px}
-/* hover: the arrow flies out to the top-right while a new one slides in from the bottom-left; "Hire me" fills with water */
-.ar{position:relative;width:120px;height:120px;overflow:hidden}
+.foot .arrow{position:absolute;right:calc(var(--m) - 32px);bottom:64px}
+/* hover: the arrow flies out to the top-right while a new one slides in from the bottom-left */
+.ar{position:relative;display:block;width:120px;height:120px;overflow:hidden}
 .ar svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .9s cubic-bezier(.65,0,.2,1)}
 .ar .a2{transform:translate(-100%,100%)}
 .arrow:hover .a1,.arrow:focus-visible .a1{transform:translate(100%,-100%)}
 .arrow:hover .a2,.arrow:focus-visible .a2{transform:none}
-.hire{--fy:46px;font-family:var(--hd);font-weight:500;font-variation-settings:"opsz" 32;font-size:36px;letter-spacing:-.02em;
-  opacity:0;translate:18px 0;transition:--fy var(--fill) .1s,opacity .5s ease,translate .8s cubic-bezier(.16,1,.3,1)}
-.arrow:hover .hire,.arrow:focus-visible .hire{--fy:-6px;opacity:1;translate:0 0}
 [data-rv]{opacity:0}
 </style>
 </head>
@@ -128,7 +121,7 @@ svg{display:block}
         <img src="data:image/webp;base64,UklGRtoNAABXRUJQVlA4WAoAAAAQAAAAfwAAfwAAQUxQSFACAAABkFZbbxxJHwQzGEFoBjaDbgZVDNIMUgzUDAwhEAwhEATBEDRLLYmtb7ZfETEBmFM+Fq3NzO/a3jZdyhs4pqu27gf3ph8SXFHz03ctYZXafdBeS0Dp1n1oqxJLaT7hVuIozSe1Swyl+cRW5pPmk1eZK908wNtMxTxEK7OkLw9T5xDzQE0muHYPtX8O9+Xh3sZKmwe8pYFk95BNhhHzoE0GEfOwTYYQ88BNBhDz0E1OS+bB7+mszcPfTro5QT3l0yleTpDOoctx5iQtHfXlNPWg4kTLMcbE0hE3p7oeIE5WXqts2kvF6ZZXjE974eqEy3PGqD1VnHJ5ZuPUnhAnnR5VVusjY9UfFKdd7lVe9V7n1e8UJ15+UWb6y87MAIhTT8AHtwug3BRo3BrQuXW8Oflvhd37wm5Rdrqxq41d29mZ0fP//o2d0dsbu1bZbcpOF3bLB7ss7N7QuXWgcWuAclPgyu0dSNwEgDHbAUCZ6S+FWf4FnVfH3cqr3iu88j10VoaHK6v6KLGSR2icNjxZOOVn0BgZni6MLs+h8TG8WPjkV9DYVLwsbOQ1rFxWHJiMieHQwiQfA+WhODgZC8Ph0jl0OQ5XDgvOVAYrzt3i23By2qOzdBbEYjPB+WKRmWBEsbhMMKZYVCYYVSymXTBu2iLaEoZe41GM/tlj6ReMLxaJCabUODRh0mIxWMbEawRrwtRSZ2uC6bPN1DJCvNosLSPMvM3QMkKVamP1NSHeXPsovWZEnXU/zzQjdnnX1o/qTS8JHN/yolvb7Z5Zq7q8f8OcVlA4IGQLAACQNgCdASqAAIAAPjEYiUOiIaESyL1cIAMEsoBm+lgqzJldmySHdTmPqe+7vfeeZj9j/2j92n8M/ed/pfUA/wHUh+gB0r39t87vr/9or4I/Gb7Z9xPWOfI/k/31/TcQvAL/GP6R/oOBNAL9XeKruXOPNkX9Vz/E/Zj0Z/Tv/n9wj+Y/2P/n8DcxUyIb8CYhkeKStbvziuo2L6DnIupuS7Ez8KqqEmOOD5dkWtRKJ/lyjstZQXKlTTagSeyyNDEo+DiBI66m6mQF8ryU58wQsLerF3//6dEaYZ+XFP/ffYigtrtGtFJdm9b0ZWgrj0+084sxBGwEaNeBFW8n8c9Zna52yCqK0ejkjfrkeiufn6CoVHEn7O3yjF/9GAbjCHEyabcEeWtjcPqHZmI+uoFuKYvKUZSooqLdN13eWf0CfWS9J9mqAk7VyVxZFYa8d+5c4qxRZV5gZFkWNTFBbXh7qyKmp5tpM+GYVylLb0M5xqW/R7444QYLtGFEjdq2ZsPngvqRFVsKM2PuAy4D7CWRnoae1dzYpKTPXu0OjbuNpT+kYUUl3Nu+xbVqIYa8y1GTgtiCt3DnmJIjNyav8t8AAP7/YBmF//ZczYt9X0oGLPlZsvygLW2/Ra1b8GpoGHpLvv8orF7+96uj0LTJGR+rb0407QI2UZ96Tx7IS4KGUhf/4msqw9StrsSeSCG+ouRiQb/9X5qgM3/+0EGmgowefJsEiT7UJregZ9KMYmnkKQrtkJIhwnIX0nz3n/Lw3uuPMC+jLLj+iFk0Dzm7XGPbIHGBQ0jz+2MlcV2Hkvy1rPbS/3zPZNMrFeK8qBz1Q/SjjPb3IuP8bqARpkNeRBaGnG2wj9vUYjUG16+AMP944WbHvLSnPK1TLh+BltoqfqJul80Iq/Pf1wnYnnIXAJEdaR8AdAGlgJp5kHec62WvsfIuoz/kdWdMrlIfTwl29Gl/IPG+5HmJ8bSJ2C4va29Uc5so+x6YPqTPJOZxZ1kWuIYQRl+GskRd3mS4kREf+OvuuSQzsZ9XW4zhfjKFijcrudw0jwP3odZ73WIZxZw/88/yTJZvpwIygjwrmMVPiwWLh2C+1lOwYvlr///bpEUhPY7YTWH8NqsF417CowaIy+oO8TAvFWVG4Ix0GnJqHUo7yM5VwkusVepMv7Zf7L0Qz2cY+9dmd+GehKbkEh60ouYxBC9xZM66+UKir75xe7u4aV9p96Gfb14RQfJBro/YUXUiRiqq3QLJeA1f3L5F7aE9YzKoa3o5JhjMftLWpeftaE0L7ERQdDUHJOocRIjEpISnCfgPun0+RwWBGXv18qe2v/L7WH8aCno07O9BE0GbvqZHa01knFIN1rkWe171szZVXmLFSEgyoMi8OaTJwn9GfQBB9pIN9tZN9SWjpzMCQgp/T81jo8xF0/IPDOUF50/xykJASsk0Dn/S0r9GAs6F/i/oRa5G3Ea/Zv8H2hS1ZHfaUWNKpdlp6Glo/PDE8lhjaAqWrH0bHJ2b+p8NKhF1a7PSmB1kFyPQEOcfs7Clt7mfM3dnniTuAkw7CcZ7kcHbMXzPsX1CIEdfbYHOR3WTyHBihjascQV7H+jk/oGcj76VPRR1iwjAtIj5j/FjwklPOTgaDsm+Q1+upja8n/BqoN0zhhwYStphWD0k+HPwlygIw6PySTAYUh+l4pHQNLmSpioHjYU1l2FBSv7BLVaVzzkan1vPeQPD1cnc6b3CSz7vCg70yLOf+fCa3vNeFezh1MH/vpLcIPv6wYgI/8V5JmxR4r/2GJ34nn38wOwpisOiD7b0y40EId97BNiCi7q2JuaDSNS4R4bzlva9SnOPc/KWz9Or5bYtXbt3FEAVorE6iKmFn5FsEpMkQs9/L7lZ7P48BQt97o37Gg7LbNpYse/mOQqcfTcutlxVKxH3ZvtKyJlxs/hIXN1VjCkmL4WFvxwTw9L8zigsuG8urMErDXVMm6QOO1eXNPVYfKdi/l3OXkq2fBUxiqpVn5wM2J3vQvzQ2u3Lcv/VHp3/+zc8A8fYhxBVIMZi8ypSFVGg7v2w9gQE0bpRb1P9ZUb53QOL8HpudxFF67QmCnkVfxJF1+wZooOSfBIQHh811IH3ncDkgMAnUItIwqY90Np1QoF0q6BV0DQnByVYUaW89yG3DOxQrWMt36UirNPcyZen5YTjSWO9EjLbH84TJqA9mnvZQbTgEVK+8/kqDxDn4Ft5kjwHO+l1HM6L649/emLaxvRm/NC95vtEqow021Nl+N7N2RPMR82MLtdW3CDsRDLtq4aS6EF4lEyxaZwvwLGJolFdMTzABR5ebA/dxxiYnXdsV1QUQBbVHSXCihIP42PbOsPmZX12ceoxkoht8GEDSfTvHInl/GVaoO7LeZgzTm6x4wHX+UtNVFMilZIbI/YztE2gMTY5gLLu021Vv63Hpd/yz3Sg+fOp6t/2as73gKaF6zfn9gQ0t1Q3+QG+jyDIKrb/fF2GiZZn/wkG2H2Dm1leVTjZx/LlJetEYmp6dgWL9K1Q4Sz57QTj7tzPbbQwnf+HnL9Mb0o6Ow2/C32dTLJmOZwjZLx3aVQE1HWWk9k+Eau718ks34HEyx3S/pJGqr8Ztjjn7TCIjmMGPvBkChwQFX6+6E/5cYl/jE53VfKvMs7i1V//u1tUoTViY6SNJgRBoQM2XB+P7JU1rIdFpzqAQB765jlE8KGsoR8RVC0xlzdUQ1VuDOqXXQkfPnzDh/taiizY6O7yEwxV5qk50i8vN1IYj/DKj8QvQObZ3k4DBQ5cXkrWdBJqTUrVqGLoX3//6r7tASTwY1WfehfUbWuAf1xmuh8vH8i9QIBJIRX1RmchSalmqNSaipNXhYXZlK4nFZ+pd9aI5D7drrgMr5f4Juhyte9UG3XWIn5lSBwkOFqHyNhC1wQQkpgn1aShSRmhJPCJgDQFPP/+UnZFzETOEEiA0PC6I1B3g5tn8GLDXtHE9JDUTuo7WlZUMV4C91s+3H766RcRrUfmYNbVr+cIOcFgN/FEM0P4d/0hMS9PRs3/4HKJ2X5QMd8PfVxpt2DSzYhc4a/Bx7PQqQxmX9NignsphbBENGSV1+zRFjXPO/VY77Rjfx1L78v+KUjy6BjngUbneilN9ZkdXWqEVHcsJoz6AMMK+y/AFgYxGNISKHhxQLHuhboavYnY/hH8mfg2/WPzbCWFJHBTw+zezo5cBTPZf7C4ldIiV40DC18YQhguXl/edTblpCq3Q34YDxPZhQKN816T+yVZdwFHrXjvVhGZwd4hqBpR+PVFo1XQl67loMApi+Bc5ySt3yXNnd2yFVMBGHEjpukSBIIUg+jc4edRl6qlPIARog3PcyGY9vKFnUFBLdzFN8dC8+Fgh2SYzrHQprsbK0c7PDu5Kmbaq7aJ8koH1PQ0Y4SgnFtr607uCuFgKEz76DS55kNe2S3TngNLpgYhHzV4UVVRNxC7RdCRO7bTj1Ni77Bb+zzq6+eobFFYVUL3UaZpU2Gj/oCVuwlLJC0og9/FlTlVdGY4K0qROABD0Qp2ALneytW//8LdI1/Vqn5bTBW5AztmYoEUB8GX+YoJhyjzJ2iJQ8C8zkW9uH7m3y9tvPKzshx5HgR7Wq3wsLrbxlWc/KM6O0aYnscdZZQek0izs6Bcn66BY+om2Z4amJMU9MadXp+vCa/Ixdo6Ae/e1DpqIUYdeCJnc4nnavN4F/et3yY7DwK9B5ZfIXEN4fr6tS/4JejahTrt9+hWwiVfIkBRGc4tO+kkR/i6/BLwc3+CAn8isu74euMXK2Es3WZ5V8wzWGqFN+KQ8afEynNEeBYGpobNqzAXkj96f9Btnx7Qzo8ZeZTRvtmNRVKnY679ieKogprynTynty8ro36o3sO7s4VP/i2AAAA=" width="64" height="64" alt="Muammar Faiq">
         <p class="hi">Hi, Iam Muamar Faiq !</p>
         <h1 class="hl">Motion graphic artist who has been creating since high school. Years of print, 2D animation and video editing work have shaped a modern, minimalist style and a reliable, results-first process.</h1>
-        <div class="tools"><span class="tool"><svg width="27" height="28" aria-hidden="true"><use href="#i-r"/></svg></span><span class="tool"><svg width="17" height="19" aria-hidden="true"><use href="#i-a"/></svg><svg width="13" height="15" class="e" aria-hidden="true"><use href="#i-e"/></svg></span></div>
+        <div class="tools"><span class="tip" tabindex="0" aria-label="Rive App"><span class="tool"><svg width="27" height="28" aria-hidden="true"><use href="#i-r"/></svg></span><i>Rive App</i></span><span class="tip" tabindex="0" aria-label="Adobe After Effects"><span class="tool"><svg width="17" height="19" aria-hidden="true"><use href="#i-a"/></svg><svg width="13" height="15" class="e" aria-hidden="true"><use href="#i-e"/></svg></span><i>Adobe After Effects</i></span></div>
       </div>
       <div class="title" id="title" aria-hidden="true"><h2 class="hd tp">Selected Works</h2><div class="fx"><h2 class="hd pbt">Selected Works</h2></div></div>
       <div class="items" id="items"></div>
@@ -137,9 +130,9 @@ svg{display:block}
         <footer class="foot" id="foot">
           <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#">Home</a><a data-rv href="#">Works</a><a data-rv href="#">About</a></nav></div>
           <div class="col c2"><p class="lab" data-rv>Get in touch</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
-          <div class="col c3"><p data-rv>© 2026 Muammar Faiq.</p></div>
+          <div class="col c3"><p data-rv>© 2026 Muammar Faiq. All rights reserved.</p></div>
           <h2 class="big hd" data-rv="110">Get in touch.</h2>
-          <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="hire wt">Hire me</span><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a>
+          <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a>
         </footer>
       </div>
     </section>
@@ -205,14 +198,12 @@ function reveal(root,on){
   },2300);
 }
 
-/* liquid hover: wave crests run forwards while filling and backwards while draining.
-   Link waves only run while they are visible (they repaint), button waves are compositor-only. */
-for(const el of $$('.btn,.soc a,.arrow')){
-  const link=!el.matches('.btn,.soc a');let a=null,timer=0;
-  const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName===(link?'lw':'wv'));
-  const on=()=>{const x=anim();if(!x)return;clearTimeout(timer);x.playbackRate=1;x.play()};
-  const off=()=>{const x=anim();if(!x)return;x.currentTime+=x.effect.getTiming().duration*1e3;x.playbackRate=-1;   /* room to run backwards without finishing */
-    if(link){x.play();timer=setTimeout(()=>x.pause(),1400)}};
+/* liquid hover: wave crests run forwards while filling and backwards while draining (compositor-only) */
+for(const el of $$('.btn,.soc a,.tip')){
+  let a=null;
+  const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName==='wv');
+  const on=()=>{const x=anim();if(!x)return;x.playbackRate=1;x.play()};
+  const off=()=>{const x=anim();if(!x)return;x.currentTime+=x.effect.getTiming().duration*1e3;x.playbackRate=-1};   /* room to run backwards without finishing */
   el.addEventListener('pointerenter',on);el.addEventListener('pointerleave',off);
   el.addEventListener('focus',on);el.addEventListener('blur',off);
 }
