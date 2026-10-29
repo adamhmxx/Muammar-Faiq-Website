@@ -47,14 +47,15 @@ svg{display:block}
 .btn:hover,.btn:active,.soc a:hover,.soc a:active{color:var(--bg)}
 @keyframes wv{to{transform:translateX(-33.3333%)}}
 
-/* ── footer text links + "Hire me": the same water fill, clipped to the letters ── */
+/* ── "Hire me": the same water fill as the buttons, clipped to the letters ── */
 @property --fy{syntax:"<length>";inherits:false;initial-value:30px}
 @property --wx{syntax:"<length>";inherits:false;initial-value:0px}
 .wt{--fy:30px;position:relative;width:max-content;padding-bottom:2px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='%230e0e10'/%3E%3C/svg%3E") repeat-x var(--wx) calc(var(--fy) - 7px)/24px 8px,linear-gradient(var(--bg),var(--bg)) 0 var(--fy)/100% 100% no-repeat,#fff;
   -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   transition:--fy var(--fill);animation:lw .9s linear infinite paused}
-.links a:hover,.links a:focus-visible{--fy:-4px}
+/* footer text links scramble on hover (see script); the width is held so nothing shifts */
+.links a{width:max-content;white-space:nowrap}
 @keyframes lw{to{--wx:24px}}
 
 /* ── content ── */
@@ -134,7 +135,7 @@ svg{display:block}
       <div class="row" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
-          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a class="wt" data-rv href="#">Home</a><a class="wt" data-rv href="#">Works</a><a class="wt" data-rv href="#">About</a></nav></div>
+          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#">Home</a><a data-rv href="#">Works</a><a data-rv href="#">About</a></nav></div>
           <div class="col c2"><p class="lab" data-rv>Get in touch</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
           <div class="col c3"><p data-rv>© 2026 Muammar Faiq.</p></div>
           <h2 class="big hd" data-rv="110">Get in touch.</h2>
@@ -206,7 +207,7 @@ function reveal(root,on){
 
 /* liquid hover: wave crests run forwards while filling and backwards while draining.
    Link waves only run while they are visible (they repaint), button waves are compositor-only. */
-for(const el of $$('.btn,.soc a,.links a,.arrow')){
+for(const el of $$('.btn,.soc a,.arrow')){
   const link=!el.matches('.btn,.soc a');let a=null,timer=0;
   const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName===(link?'lw':'wv'));
   const on=()=>{const x=anim();if(!x)return;clearTimeout(timer);x.playbackRate=1;x.play()};
@@ -214,6 +215,25 @@ for(const el of $$('.btn,.soc a,.links a,.arrow')){
     if(link){x.play();timer=setTimeout(()=>x.pause(),1400)}};
   el.addEventListener('pointerenter',on);el.addEventListener('pointerleave',off);
   el.addEventListener('focus',on);el.addEventListener('blur',off);
+}
+
+/* footer text links: letters scramble into random glyphs and resolve back, left to right */
+{
+  const GL='abcdefghijklmnopqrstuvwxyz!<>-_/[]{}=+*^?#';
+  for(const el of $$('.links a')){
+    const txt=el.textContent;let raf=0;
+    const run=()=>{
+      cancelAnimationFrame(raf);el.style.width=el.offsetWidth+'px';
+      const t0=performance.now(),ends=[...txt].map((_,i)=>140+i*70+Math.random()*120);let last=0;
+      const f=n=>{
+        const t=n-t0;
+        if(n-last>40){last=n;el.textContent=[...txt].map((c,i)=>t>=ends[i]||c===' '?c:GL[(Math.random()*GL.length)|0]).join('')}
+        if(t<ends[ends.length-1])raf=requestAnimationFrame(f);else{el.textContent=txt;el.style.width=''}
+      };
+      raf=requestAnimationFrame(f);
+    };
+    el.addEventListener('pointerenter',run);el.addEventListener('focus',run);
+  }
 }
 
 /* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. The same field becomes a displacement map
