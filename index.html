@@ -10,7 +10,7 @@
 <style>
 /* Dark, desktop-first single page. 12-col grid · margin 64 · gutter 16. Heading: Inter Display 500 · Body: Geist 400 */
 :root{color-scheme:dark;--bg:#0e0e10;--card:#1c1c1d;--pink:#dd1fff;--tx:#e8e8ea;--dim:rgba(255,255,255,.8);
-  --h:100vh;--m:64px;--g:16px;--fill:1.34s cubic-bezier(.45,.05,.2,1);
+  --fill:1.34s cubic-bezier(.45,.05,.2,1);
   --hd:"Inter Display","Inter",system-ui,sans-serif;--bd:"Geist",system-ui,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:#fff;font-family:var(--bd);font-weight:400;
@@ -22,14 +22,14 @@ svg{display:block}
 :focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01s!important}}
 
-#page{position:fixed;inset:0;overflow:hidden auto;background:var(--bg);scrollbar-width:none}
+#page{position:fixed;inset:0;overflow:hidden auto;scrollbar-width:none}
 #page::-webkit-scrollbar{display:none}
-.pin{position:sticky;top:0;height:var(--h);min-height:620px;overflow:hidden}
+.pin{position:sticky;top:0;height:100vh;min-height:620px;overflow:hidden}
 
 /* ── water surface: cursor ripples spread over the whole page (highlight canvas). The same wave field refracts every
       layer below it, buttons and links included: a displacement map rebuilt from the simulation drives a backdrop-filter. ── */
-#water{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:1000}
-#glass{position:fixed;left:0;top:0;width:0;height:0;z-index:999;pointer-events:none}   /* refracts everything below it, buttons included */
+#water{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1000}
+#glass{position:fixed;left:0;top:0;width:0;height:0;z-index:999;pointer-events:none}
 
 /* ── nav pill ── */
 .clock{position:fixed;z-index:60;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:24px;height:56px;
@@ -55,8 +55,8 @@ svg{display:block}
 .tool{width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;gap:2px}
 .tool svg{transform:scale(1.15)}
 .tool .e{margin-top:4px}
-.tip{position:relative;display:block}
-.tip>i{position:absolute;left:50%;bottom:calc(100% + 10px);padding:7px 12px;border-radius:10px;background:#18181a;font:400 13px var(--bd);font-style:normal;
+.tip{position:relative}
+.tip>i{position:absolute;left:50%;bottom:calc(100% + 10px);padding:7px 12px;border-radius:10px;background:#18181a;font:400 13px var(--bd);
   color:#fff;white-space:nowrap;pointer-events:none;opacity:0;translate:-50% 6px;transition:opacity .3s ease,translate .5s cubic-bezier(.16,1,.3,1)}
 .tip:hover>i,.tip:focus-within>i{opacity:1;translate:-50% 0}
 .soc{display:flex;gap:10px}
@@ -66,11 +66,11 @@ svg{display:block}
 .meta{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:16px;letter-spacing:-.01em}
 .meta span{color:rgba(255,255,255,.7)}
 .intro{position:absolute;z-index:3;left:50%;top:16.9%;width:53.7%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}
-.intro img{width:64px;height:64px;border-radius:50%}
+.intro img{border-radius:50%}
 .hi{font-size:16px;color:var(--dim)}
 .hl{font-size:32px;line-height:1.2}
 .row{position:absolute;z-index:26;left:0;right:0;top:68.9%;height:198px;display:flex;align-items:center;justify-content:center;gap:16px;
-  font-family:var(--hd);font-weight:500;font-size:48px;letter-spacing:-.02em;font-variation-settings:"opsz" 32;cursor:pointer}
+  font-size:48px;letter-spacing:-.02em;cursor:pointer}
 .row .par{color:var(--tx)}
 .box{position:relative;width:352px;height:198px;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 .row:hover .box{transform:scale(1.05)}
@@ -83,22 +83,23 @@ svg{display:block}
 .fx{position:absolute;inset:0;opacity:0}
 .pbt{background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .pbt+.pbt{position:absolute;left:0;right:0;top:0}
-.l0{-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 55%);mask-image:linear-gradient(180deg,#000 30%,transparent 55%)}
-.l1{filter:blur(1.35px);-webkit-mask-image:linear-gradient(180deg,transparent 15%,#000 40%,#000 55%,transparent 75%);mask-image:linear-gradient(180deg,transparent 15%,#000 40%,#000 55%,transparent 75%)}
-.l2{filter:blur(2.65px);-webkit-mask-image:linear-gradient(180deg,transparent 45%,#000 65%,#000 75%,transparent 92%);mask-image:linear-gradient(180deg,transparent 45%,#000 65%,#000 75%,transparent 92%)}
-.l3{filter:blur(4px);-webkit-mask-image:linear-gradient(180deg,transparent 70%,#000 90%);mask-image:linear-gradient(180deg,transparent 70%,#000 90%)}
+.fx .pbt{-webkit-mask-image:var(--mk);mask-image:var(--mk)}
+.l0{--mk:linear-gradient(180deg,#000 30%,transparent 55%)}
+.l1{--mk:linear-gradient(180deg,transparent 15%,#000 40%,#000 55%,transparent 75%);filter:blur(1.35px)}
+.l2{--mk:linear-gradient(180deg,transparent 45%,#000 65%,#000 75%,transparent 92%);filter:blur(2.65px)}
+.l3{--mk:linear-gradient(180deg,transparent 70%,#000 90%);filter:blur(4px)}
 .items{position:absolute;inset:0;z-index:22;pointer-events:none}
 .items .card{position:absolute;top:0;opacity:0;will-change:transform}
 
-/* ── footer: full width, opens vertically from the centre line ── */
+/* ── footer: grows from the bottom centre (clip-path set by the script) ── */
 .footp{position:absolute;z-index:30;inset:32px;border-radius:32px;background:var(--pink);overflow:hidden;visibility:hidden}
 .foot{position:absolute;inset:0}
 .foot .col{position:absolute;top:56px;font-size:16px}
 .foot .lab{color:rgba(255,255,255,.6);margin-bottom:12px}
 .links{display:grid;gap:4px}
-.foot .c1{left:calc(var(--m) - 32px)}.foot .c2{left:28.8%}.foot .c3{left:63.2%;top:58px}
-.foot .big{position:absolute;left:calc(var(--m) - 32px);bottom:48px;font-size:13.5vw;letter-spacing:-.06em;line-height:.9;white-space:nowrap}
-.foot .arrow{position:absolute;right:calc(var(--m) - 32px);bottom:64px}
+.foot .c1{left:32px}.foot .c2{left:28.8%}.foot .c3{left:63.2%;top:58px}
+.foot .big{position:absolute;left:32px;bottom:48px;font-size:13.5vw;letter-spacing:-.06em;line-height:.9;white-space:nowrap}
+.foot .arrow{position:absolute;right:32px;bottom:64px}
 /* hover: the arrow flies out to the top-right while a new one slides in from the bottom-left */
 .ar{position:relative;display:block;width:120px;height:120px;overflow:hidden}
 .ar svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .9s cubic-bezier(.65,0,.2,1)}
@@ -125,7 +126,7 @@ svg{display:block}
       </div>
       <div class="title" id="title" aria-hidden="true"><h2 class="hd tp">Selected Works</h2><div class="fx"><h2 class="hd pbt">Selected Works</h2></div></div>
       <div class="items" id="items"></div>
-      <div class="row" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
+      <div class="row hd" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
           <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#">Home</a><a data-rv href="#">Works</a><a data-rv href="#">About</a></nav></div>
@@ -230,13 +231,12 @@ for(const el of $$('.btn,.soc a,.tip')){
 /* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. The same field becomes a displacement map
       for one backdrop-filter overlay that is sized to the rippling area only, so the cost follows the ripples ── */
 const Water={
-  cell:6,pad:12,on:false,last:null,lite:false,adaptive:true,busy:false,flip:0,urls:[null,null],
+  cell:6,pad:12,on:false,last:null,lite:false,busy:false,flip:0,urls:[null,null],
   init(){
     this.cv=$('#water');this.cx=this.cv.getContext('2d');this.gl=$('#glass');
     this.mc=document.createElement('canvas');this.mx=this.mc.getContext('2d');
     this.mc2=document.createElement('canvas');this.mx2=this.mc2.getContext('2d');   /* map smoothed 2x so the bends stay soft */
     this.size();
-    addEventListener('resize',()=>this.size());
     addEventListener('pointermove',e=>{if(e.pointerType!=='touch')this.poke(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{this.last=null});
   },
@@ -272,13 +272,14 @@ const Water={
   },
   frame(){
     if(!this.on)return;
-    const {w,h,a,b,px,mp}=this,refract=!this.lite;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
+    /* the displacement map is only built on frames that will actually send it */
+    const {w,h,a,b,px,mp}=this,build=!this.lite&&!this.busy;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
     for(let y=1;y<h-1;y++){
       for(let x=1,i=y*w+1;x<w-1;x++,i++){
         b[i]=((a[i-1]+a[i+1]+a[i-w]+a[i+w])*.5-b[i])*.982;
         const sx=(a[i+1]-a[i-1])*.5,sy=(a[i+w]-a[i-w])*.5,s=sx+sy,k=(s<0?-s:s)*.06,al=(17.85*k/(1+k))|0;   /* ≈ 0.07·255·(1-e^-k) */
         px[i]=al<<24|(s>0?0xffffff:0);if(al>ma)ma=al;
-        if(refract){
+        if(build){
           const r=(128+clamp(sx*4,-127,127))|0,g=(128+clamp(sy*4,-127,127))|0;mp[i]=0xff800000|g<<8|r;
           if(r!==128||g!==128){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
         }
@@ -287,7 +288,7 @@ const Water={
     this.a=b;this.b=a;
     this.cx.putImageData(this.img,0,0);
     if(!ma){a.fill(0);b.fill(0);this.on=false;this.glass(-1);return}   /* calm: clear and sleep */
-    if(refract&&!this.busy&&x1>=0){
+    if(build&&x1>=0){
       const c=this.cell,p=this.pad,bx=Math.max(0,x0*c-p),by=Math.max(0,y0*c-p);
       const bb=[bx,by,Math.min(innerWidth,(x1+1)*c+p)-bx,Math.min(innerHeight,(y1+1)*c+p)-by];
       this.busy=true;this.mx.putImageData(this.mimg,0,0);this.mx2.drawImage(this.mc,0,0,w*2,h*2);this.mc2.toBlob(bl=>this.swap(bl,bb));
@@ -329,7 +330,7 @@ const O={
     /* word gap of the merged row = the title's space at 40 % scale, so the swap is seamless */
     const rg=document.createRange(),tn=t.querySelector('.tp').firstChild,sp=tn.textContent.indexOf(' ');
     rg.setStart(tn,sp);rg.setEnd(tn,sp+1);this.g4=rg.getBoundingClientRect().width*.4/4;
-    const m=64,g=16,cw=(vw-2*m-11*g)/12,iw=3*cw+2*g;this.ch=iw*9/16+40;
+    const m=64,g=16,cw=(vw-2*m-11*g)/12,iw=3*cw+2*g;this.ch=iw*9/16+40;   /* 12-col grid · margin 64 · gutter 16 */
     this.cards.forEach((c,i)=>{c.el.style.width=iw+'px';c.el.style.left=m+(COLS[i]-1)*(cw+g)+'px'});
     /* schedule: each item starts as early as possible without ever touching an item that shares its columns,
        even though the items travel at different speeds */
@@ -388,7 +389,7 @@ let lastT=0,avg=16,slow=0;
 function loop(now){
   O.tick();Water.frame();
   const dt=now-lastT;lastT=now;
-  if(Water.on&&Water.adaptive&&!Water.lite&&dt<250){
+  if(Water.on&&!Water.lite&&dt<250){
     avg=avg*.85+dt*.15;
     if(avg>22&&++slow>12){Water.lite=true;Water.glass(-1)}
   }else slow=Math.max(0,slow-1);
@@ -396,7 +397,7 @@ function loop(now){
 }
 Water.init();O.init();
 document.addEventListener('click',e=>{if(e.target.closest('a[href="#"]'))e.preventDefault()});
-addEventListener('resize',()=>O.measure());
+addEventListener('resize',()=>{Water.size();O.measure()});
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{reveal(O.foot,false);O.measure();requestAnimationFrame(loop)});
 </script>
 
