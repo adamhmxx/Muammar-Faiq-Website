@@ -26,10 +26,10 @@ svg{display:block}
 #page::-webkit-scrollbar{display:none}
 .pin{position:sticky;top:0;height:var(--h);min-height:620px;overflow:hidden}
 
-/* ── water surface: cursor ripples spread over the whole page (highlight canvas). The same wave field refracts the
-      layers below it: a displacement map rebuilt from the simulation drives a backdrop-filter. Buttons and links sit above it. ── */
+/* ── water surface: cursor ripples spread over the whole page (highlight canvas). The same wave field refracts every
+      layer below it, buttons and links included: a displacement map rebuilt from the simulation drives a backdrop-filter. ── */
 #water{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:1000}
-.gl{position:absolute;inset:0;z-index:25;pointer-events:none}
+#glass{position:fixed;left:0;top:0;width:0;height:0;z-index:999;pointer-events:none}   /* refracts everything below it, buttons included */
 
 /* ── nav pill ── */
 .clock{position:fixed;z-index:60;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:24px;height:56px;
@@ -47,10 +47,10 @@ svg{display:block}
 .btn:hover,.btn:active,.soc a:hover,.soc a:active{color:var(--bg)}
 @keyframes wv{to{transform:translateX(-33.3333%)}}
 
-/* ── footer text links: the same water fill, clipped to the letters ── */
+/* ── footer text links + "Hire me": the same water fill, clipped to the letters ── */
 @property --fy{syntax:"<length>";inherits:false;initial-value:30px}
 @property --wx{syntax:"<length>";inherits:false;initial-value:0px}
-.links a{--fy:30px;position:relative;z-index:2;width:max-content;padding-bottom:2px;
+.wt{--fy:30px;position:relative;width:max-content;padding-bottom:2px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='%230e0e10'/%3E%3C/svg%3E") repeat-x var(--wx) calc(var(--fy) - 7px)/24px 8px,linear-gradient(var(--bg),var(--bg)) 0 var(--fy)/100% 100% no-repeat,#fff;
   -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
   transition:--fy var(--fill);animation:lw .9s linear infinite paused}
@@ -100,12 +100,17 @@ svg{display:block}
 .foot .lab{color:rgba(255,255,255,.6);margin-bottom:12px}
 .links{display:grid;gap:4px}
 .foot .c1{left:calc(var(--m) - 32px)}.foot .c2{left:28.8%}.foot .c3{left:63.2%;top:58px}
-.foot .soc{position:relative;z-index:2}
 .foot .big{position:absolute;left:calc(var(--m) - 32px);bottom:48px;font-size:13.5vw;letter-spacing:-.06em;line-height:.9;white-space:nowrap}
-.foot .arrow{position:absolute;z-index:2;right:calc(var(--m) - 32px);bottom:64px;width:120px;height:120px;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-.foot .arrow:hover{transform:translate(6px,-6px)}
-.foot .arrow svg{width:100%;height:100%}
-.foot .gl{z-index:1}
+.foot .arrow{position:absolute;right:calc(var(--m) - 32px);bottom:64px;display:flex;align-items:center;gap:28px}
+/* hover: the arrow flies out to the top-right while a new one slides in from the bottom-left; "Hire me" fills with water */
+.ar{position:relative;width:120px;height:120px;overflow:hidden}
+.ar svg{position:absolute;inset:0;width:100%;height:100%;transition:transform .9s cubic-bezier(.65,0,.2,1)}
+.ar .a2{transform:translate(-100%,100%)}
+.arrow:hover .a1,.arrow:focus-visible .a1{transform:translate(100%,-100%)}
+.arrow:hover .a2,.arrow:focus-visible .a2{transform:none}
+.hire{--fy:46px;font-family:var(--hd);font-weight:500;font-variation-settings:"opsz" 32;font-size:36px;letter-spacing:-.02em;
+  opacity:0;translate:18px 0;transition:--fy var(--fill) .1s,opacity .5s ease,translate .8s cubic-bezier(.16,1,.3,1)}
+.arrow:hover .hire,.arrow:focus-visible .hire{--fy:-6px;opacity:1;translate:0 0}
 [data-rv]{opacity:0}
 </style>
 </head>
@@ -113,6 +118,7 @@ svg{display:block}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-li" viewBox="0 0 16 16"><path d="M14.8571 0C15.5 0 16 0.535714 16 1.14286V14.8571C16 15.5 15.5 16 14.8571 16H1.14286C0.5 16 0 15.5 0 14.8571V1.14286C0 0.535714 0.5 0 1.14286 0H14.8571ZM4.85714 13.7143V6.07143H2.46429V13.7143H4.85714ZM3.64286 2.28571C2.89286 2.28571 2.28571 2.89286 2.28571 3.67857C2.28571 4.42857 2.89286 5.03571 3.64286 5.03571C4.39286 5.03571 5.03571 4.42857 5.03571 3.67857C5.03571 2.89286 4.39286 2.28571 3.64286 2.28571ZM13.7143 13.7143V9.53572C13.7143 7.46429 13.2857 5.89286 10.8929 5.89286C9.71429 5.89286 8.96429 6.53571 8.64286 7.10714H8.60714V6.07143H6.32143V13.7143H8.71429V9.92857C8.71429 8.92857 8.89286 7.96429 10.1071 7.96429C11.3214 7.96429 11.3571 9.10714 11.3571 10V13.7143H13.7143Z" fill="currentColor"/></symbol><symbol id="i-ig" viewBox="0 0 16 16"><path d="M7.98214 3.90418C10.2679 3.90418 12.0893 5.75822 12.0893 8.00446C12.0893 10.2864 10.2321 12.1047 7.98214 12.1047C5.69643 12.1047 3.875 10.2507 3.875 8.00446C3.875 5.72256 5.73214 3.90418 7.98214 3.90418ZM7.98214 5.33036C6.48214 5.36602 5.30357 6.54262 5.30357 8.00446C5.33929 9.50195 6.51786 10.6786 7.98214 10.6786C9.48214 10.6429 10.6607 9.4663 10.6607 8.00446C10.625 6.50696 9.44643 5.33036 7.98214 5.33036ZM11.3036 3.72591C11.3036 4.26072 11.7321 4.68858 12.2679 4.68858C12.8036 4.68858 13.2321 4.26072 13.2321 3.72591C13.2321 3.19109 12.8036 2.79889 12.2679 2.79889C11.7321 2.79889 11.3036 3.19109 11.3036 3.72591ZM15.9464 4.72423C16.0179 6.04345 16.0179 9.96546 15.9464 11.2847C15.875 12.5682 15.5893 13.7092 14.6607 14.6362C13.6964 15.5989 12.5893 15.8841 11.3036 15.9198C9.98214 16.0267 6.01786 16.0267 4.69643 15.9198C3.41071 15.8841 2.26786 15.5632 1.33929 14.6362C0.410714 13.7092 0.0892857 12.5682 0.0535714 11.2847C-0.0178571 9.96546 -0.0178571 6.0078 0.0535714 4.68858C0.125 3.44067 0.410714 2.29972 1.33929 1.3727C2.26786 0.410028 3.41071 0.124791 4.69643 0.0534819C6.01786 -0.0178273 9.98214 -0.0178273 11.3036 0.0534819C12.5893 0.124791 13.6964 0.410028 14.6607 1.3727C15.5893 2.29972 15.875 3.44067 15.9464 4.72423ZM14.2321 12.7109C14.6607 11.6769 14.5536 9.18106 14.5536 8.00446C14.5536 6.82786 14.6607 4.33203 14.2321 3.29805C13.9464 2.58496 13.4107 2.05014 12.6964 1.7649C11.6607 1.3727 9.16072 1.44401 7.98214 1.44401C6.83929 1.44401 4.33929 1.3727 3.26786 1.7649C2.58929 2.05014 2.01786 2.58496 1.76786 3.29805C1.33929 4.33203 1.44643 6.82786 1.44643 8.00446C1.44643 9.18106 1.33929 11.6769 1.76786 12.7109C2.05357 13.424 2.58929 13.9588 3.26786 14.244C4.33929 14.6362 6.83929 14.5649 7.98214 14.5649C9.16072 14.5649 11.6607 14.6362 12.6964 14.244C13.4107 13.9588 13.9464 13.424 14.2321 12.7109Z" fill="currentColor"/></symbol><symbol id="i-x" viewBox="0 0 18 16"><path d="M14.1652 0H16.9435L10.9174 6.76923L18 16H12.4435L8.1 10.4231L3.13043 16H0.352174L6.8087 8.76923L0 0H5.67391L9.62609 5.11538L14.1652 0ZM13.187 14.3846H14.7522L4.85217 1.53846H3.2087L13.187 14.3846Z" fill="currentColor"/></symbol><symbol id="i-up" viewBox="0 0 26 16"><path d="M20.0688 9.59194C21.8969 9.59194 23.3594 8.10076 23.3594 5.96474C23.3594 3.82872 21.8969 2.33753 20.0688 2.33753C18.2 2.33753 16.7781 3.5466 16.2906 7.41562C16.6562 8.02015 18.0375 9.59194 20.0688 9.59194ZM20.0688 0C23.3594 0 26 2.53904 26 5.96474C26 9.39043 23.3594 11.9295 20.0688 11.9295C19.9875 11.9295 19.825 11.9295 19.825 11.9295C18.7687 11.8892 17.7125 11.5668 16.8188 11.0025C16.4937 10.801 16.1688 10.5592 15.8438 10.3174L14.9094 16H12.2281L13.65 7.97985C12.1062 5.84383 11.2937 3.42569 10.9688 2.17632V6.00504C10.9688 9.47103 8.73438 11.9295 5.525 11.9295C3.94062 11.9295 2.55938 11.3652 1.54375 10.2368C0.528125 9.14861 0 7.65743 0 6.00504V0.322418H2.64062V6.00504C2.64062 8.06045 3.69687 9.59194 5.525 9.59194C7.39375 9.59194 8.32812 8.06045 8.32812 6.00504V0.322418H12.9187C13.2844 1.733 13.7312 3.22418 14.3406 4.35264C14.8687 2.13602 16.7375 0 20.0688 0Z" fill="currentColor"/></symbol><symbol id="i-arrow" viewBox="0 0 120 120"><path d="M120 0V87.7157H105.344V24.9746L10.0763 120L0 109.645L95.2672 14.6193H32.0611V0H120Z" fill="currentColor"/></symbol><symbol id="i-r" viewBox="0 0 27 28"><path d="M1.51407 0H16.7472C16.9379 0.0449354 17.189 0.0427115 17.3893 0.0628475C17.7522 0.098387 18.1126 0.155542 18.4686 0.234007C20.6705 0.717633 22.7293 1.96762 23.9712 3.87772C25.2577 5.89298 25.6947 8.33536 25.1867 10.6717C24.7548 12.7035 23.5259 14.4772 21.7753 15.5951C21.3781 15.8516 20.9622 16.0777 20.5308 16.2716C20.9782 17.0104 21.4844 17.7845 21.9471 18.5193L24.6027 22.7426L25.5678 24.278C25.825 24.6841 26.111 25.0924 26.2998 25.534C26.7106 26.4935 26.1827 27.6705 25.13 27.878C25.0857 27.8868 24.9766 27.9115 24.9382 27.9273H24.3118C24.2544 27.9067 24.1614 27.882 24.1019 27.8673C23.3356 27.6772 23.0508 27.1501 22.6563 26.522L21.9189 25.3447L19.4759 21.4688L17.6369 18.5491L17.0838 17.673C17.0012 17.542 16.8361 17.2942 16.7762 17.1622C16.4312 17.1858 15.9104 17.1691 15.5518 17.169H13.255L10.9752 17.1694C10.585 17.1694 10.1831 17.1814 9.79425 17.1631C9.06663 17.1289 8.47482 16.6818 8.22758 16.0055C8.07735 15.588 8.09958 15.1276 8.28937 14.7265C8.85772 13.5131 10.0993 13.7277 11.2081 13.7283L14.2784 13.7279L15.5705 13.728C16.6291 13.7284 17.4166 13.7164 18.4419 13.3559C19.6756 12.9221 20.7556 12.0398 21.3205 10.8461C21.8788 9.66661 21.8627 8.0642 21.4277 6.84457C20.9237 5.43113 19.6987 4.28051 18.2879 3.78342C17.8012 3.61235 17.2944 3.50555 16.7802 3.46576C16.2312 3.41783 15.6032 3.43447 15.0463 3.43465L12.4384 3.43493L4.05848 3.43504L2.47012 3.43544C1.95719 3.43593 1.45837 3.48773 0.982854 3.26078C0.566563 3.06514 0.24725 2.70926 0.0977269 2.27427C-0.055704 1.83136 -0.0301277 1.36303 0.186191 0.947246C0.4121 0.513029 0.693122 0.266857 1.15605 0.101936C1.28576 0.0557268 1.39188 0.0403867 1.51407 0Z" fill="currentColor"/></symbol><symbol id="i-a" viewBox="0 0 17 19"><path d="M8.8623 0.00585938C9.17249 0.00566661 10.288 -0.0256537 10.4893 0.0605469C10.616 0.286397 10.8831 1.09379 10.9863 1.38672L11.8984 3.96484L15.0488 12.8721L16.1387 15.9512C16.3406 16.5224 16.6552 17.3068 16.7803 17.9072C16.7946 17.9778 16.5532 18.0092 16.4932 18.0088C15.8066 18.0038 15.1183 18.0076 14.4316 18.0078C14.0387 17.9952 13.2419 18.0592 12.8887 17.9844C12.7382 17.8854 12.3378 16.5843 12.2588 16.3516L11.3643 13.7256C11.1058 13.7356 10.8029 13.7287 10.541 13.7295L5.03516 13.7275L4.21582 16.2949C4.06564 16.7666 3.91892 17.2409 3.76074 17.71C3.66897 17.942 3.62774 18.0056 3.37793 18.0068C2.36363 18.0115 1.35195 18.0005 0.337891 18.0098C0.226206 18.0108 0.0586912 17.9828 0.000976562 17.875C0.0115463 17.6412 0.357798 16.7149 0.454102 16.4375L1.24512 14.1562L5.17871 2.79297C5.35247 2.29333 5.61968 1.5894 5.70117 1.09277C5.73139 0.911014 5.75009 0.727099 5.75781 0.542969C5.77599 -0.0164073 5.69081 0.00595187 6.26953 0.00683594L8.8623 0.00585938ZM8.16504 3.16504C7.55279 5.57495 6.83902 7.95785 6.02539 10.3066L8.24707 10.3076L10.3516 10.3057C9.84061 8.70561 9.34966 7.09348 8.84375 5.49121C8.77886 5.28547 8.19431 3.19117 8.16504 3.16504Z" fill="currentColor"/></symbol><symbol id="i-e" viewBox="0 0 13 15"><path d="M6.37695 0.00292969C10.013 -0.100983 12.2975 2.24783 12.3906 5.87695C12.399 6.20886 12.3686 7.72791 12.207 7.92285C12.0569 8.00742 11.0093 8.07 10.7617 8.08008C10.2175 8.1076 9.66052 8.01147 9.12012 8.02051C7.37237 8.04962 5.59045 7.97416 3.8457 8.02539C4.03201 9.02511 4.35773 9.89388 5.29492 10.4131C6.83823 11.2678 8.62394 11.0212 10.2666 10.6611C10.5736 10.5939 10.8891 10.4636 11.1953 10.376C11.2156 10.6709 11.2094 11.0023 11.209 11.3008L11.2119 12.583C11.2127 12.8058 11.2155 13.0276 11.2031 13.25C11.1884 13.5151 10.8303 13.6102 10.6162 13.6865C9.61242 14.0448 8.52931 14.1551 7.47266 14.2178C7.10301 14.2397 6.74267 14.218 6.37402 14.1973C4.80935 14.1488 3.3324 13.6855 2.14453 12.6221C0.727668 11.3338 0.126986 9.58777 0.0146484 7.70117C-0.180447 4.42111 1.56778 0.863024 4.97656 0.136719C5.41343 0.043653 5.92912 0.0237855 6.37695 0.00292969ZM6.24219 2.99609C4.69738 3.13093 4.12407 4.08424 3.8418 5.50195L6.45801 5.5C7.04594 5.50125 8.31931 5.56194 8.80762 5.37793C8.76424 3.96254 7.82027 2.94029 6.38086 2.9873C6.33456 2.98893 6.28829 2.99233 6.24219 2.99609Z" fill="currentColor"/></symbol></svg>
 <svg id="wf" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"></svg>
 <canvas id="water" aria-hidden="true"></canvas>
+<div id="glass" aria-hidden="true"></div>
 
 <main id="page">
   <div id="rw">
@@ -125,16 +131,14 @@ svg{display:block}
       </div>
       <div class="title" id="title" aria-hidden="true"><h2 class="hd tp">Selected Works</h2><div class="fx"><h2 class="hd pbt">Selected Works</h2></div></div>
       <div class="items" id="items"></div>
-      <div class="gl" id="gl-pin" aria-hidden="true"></div>
       <div class="row" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
-          <div class="gl" id="gl-foot" aria-hidden="true"></div>
-          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#">Home</a><a data-rv href="#">Works</a><a data-rv href="#">About</a></nav></div>
+          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a class="wt" data-rv href="#">Home</a><a class="wt" data-rv href="#">Works</a><a class="wt" data-rv href="#">About</a></nav></div>
           <div class="col c2"><p class="lab" data-rv>Get in touch</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
           <div class="col c3"><p data-rv>© 2026 Muammar Faiq.</p></div>
           <h2 class="big hd" data-rv="110">Get in touch.</h2>
-          <a class="arrow" href="#" aria-label="Get in touch" data-rv="60"><svg viewBox="0 0 120 120"><use href="#i-arrow"/></svg></a>
+          <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="hire wt">Hire me</span><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a>
         </footer>
       </div>
     </section>
@@ -150,7 +154,7 @@ const ease=t=>t<.5?4*t*t*t:1-(2-2*t)**3/2;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t)};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide on the 12-col grid */
-const COLS=[1,10,4,7,2,9,3,8,5,6];
+const COLS=[1,10,4,7,2,9,3,8,5,6],SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];   /* pairs share a speed; pairs differ (parallax) */
 const card=i=>`<div class="card" style="--c:${COLORS[i%COLORS.length]}"><div class="thumb"><i></i></div><div class="meta"><h3 class="hd">Project title</h3><span>2026</span></div></div>`;
 const page=$('#page');
 
@@ -202,8 +206,8 @@ function reveal(root,on){
 
 /* liquid hover: wave crests run forwards while filling and backwards while draining.
    Link waves only run while they are visible (they repaint), button waves are compositor-only. */
-for(const el of $$('.btn,.soc a,.links a')){
-  const link=el.matches('.links a');let a=null,timer=0;
+for(const el of $$('.btn,.soc a,.links a,.arrow')){
+  const link=!el.matches('.btn,.soc a');let a=null,timer=0;
   const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName===(link?'lw':'wv'));
   const on=()=>{const x=anim();if(!x)return;clearTimeout(timer);x.playbackRate=1;x.play()};
   const off=()=>{const x=anim();if(!x)return;x.currentTime+=x.effect.getTiming().duration*1e3;x.playbackRate=-1;   /* room to run backwards without finishing */
@@ -212,14 +216,14 @@ for(const el of $$('.btn,.soc a,.links a')){
   el.addEventListener('focus',on);el.addEventListener('blur',off);
 }
 
-/* ── water: wave simulation on a coarse grid. Drawn as light/shade ripples, and fed to the refraction filters ── */
+/* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. The same field becomes a displacement map
+      for one backdrop-filter overlay that is sized to the rippling area only, so the cost follows the ripples ── */
 const Water={
-  cell:6,on:false,last:null,lite:false,adaptive:true,busy:false,urls:[null,null],
+  cell:6,pad:12,on:false,last:null,lite:false,adaptive:true,busy:false,flip:0,urls:[null,null],
   init(){
-    this.cv=$('#water');this.cx=this.cv.getContext('2d');
+    this.cv=$('#water');this.cx=this.cv.getContext('2d');this.gl=$('#glass');
     this.mc=document.createElement('canvas');this.mx=this.mc.getContext('2d');
     this.mc2=document.createElement('canvas');this.mx2=this.mc2.getContext('2d');   /* map smoothed 2x so the bends stay soft */
-    this.layers=[{el:$('#gl-pin'),id:'p',off:0},{el:$('#gl-foot'),id:'f',off:32}];
     this.size();
     addEventListener('resize',()=>this.size());
     addEventListener('pointermove',e=>{if(e.pointerType!=='touch')this.poke(e.clientX,e.clientY)},{passive:true});
@@ -228,14 +232,20 @@ const Water={
   size(){
     const c=this.cell,w=Math.ceil(innerWidth/c)+2,h=Math.ceil(innerHeight/c)+2;
     Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false,busy:false});
-    this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;this.mc2.width=w*2;this.mc2.height=h*2;this.mx2.imageSmoothingQuality='high';this.mx2.filter='blur(1.5px)';
+    this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;this.mc2.width=w*2;this.mc2.height=h*2;
+    this.mx2.imageSmoothingQuality='high';this.mx2.filter='blur(1.5px)';
     this.img=this.cx.createImageData(w,h);this.px=new Uint32Array(this.img.data.buffer);
     this.mimg=this.mx.createImageData(w,h);this.mp=new Uint32Array(this.mimg.data.buffer);
-    /* two filters per layer (double buffered), map pixels = grid cells, offset by the layer's position */
-    $('#wf').innerHTML=this.layers.map(L=>[0,1].map(k=>`<filter id="wf-${L.id}${k}" filterUnits="userSpaceOnUse" x="0" y="0" width="${innerWidth}" height="${innerHeight}" color-interpolation-filters="sRGB"><feImage preserveAspectRatio="none" x="${-L.off}" y="${-L.off}" width="${w*c}" height="${h*c}" result="m"/><feDisplacementMap in="SourceGraphic" in2="m" scale="26" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('')).join('');
-    for(const L of this.layers){L.fe=[0,1].map(k=>$(`#wf-${L.id}${k} feImage`));this.glass(L,null)}
+    /* double-buffered filters: the idle one receives the next map while the other is on screen */
+    $('#wf').innerHTML=[0,1].map(k=>`<filter id="wf${k}" filterUnits="userSpaceOnUse" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feImage preserveAspectRatio="none" result="m"/><feDisplacementMap in="SourceGraphic" in2="m" scale="23.4" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('');
+    this.f=[0,1].map(k=>({el:$('#wf'+k),fe:$(`#wf${k} feImage`)}));this.glass(-1);
   },
-  glass(L,id){L.el.style.backdropFilter=L.el.style.webkitBackdropFilter=id?`url(#${id})`:''},
+  glass(k,bb){
+    const g=this.gl.style;
+    if(k<0){g.backdropFilter=g.webkitBackdropFilter='';g.width=g.height='0';return}
+    g.transform=`translate(${bb[0]}px,${bb[1]}px)`;g.width=bb[2]+'px';g.height=bb[3]+'px';
+    g.backdropFilter=g.webkitBackdropFilter=`url(#wf${k})`;
+  },
   poke(x,y){
     const l=this.last;this.last={x,y};if(!l)return;
     const dist=Math.hypot(x-l.x,y-l.y);if(dist<1)return;
@@ -251,38 +261,44 @@ const Water={
   },
   frame(){
     if(!this.on)return;
-    const {w,h,a,b,px,mp}=this,refract=!this.lite;let ma=0;
+    const {w,h,a,b,px,mp}=this,refract=!this.lite;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
     for(let y=1;y<h-1;y++){
       for(let x=1,i=y*w+1;x<w-1;x++,i++){
         b[i]=((a[i-1]+a[i+1]+a[i-w]+a[i+w])*.5-b[i])*.982;
         const sx=(a[i+1]-a[i-1])*.5,sy=(a[i+w]-a[i-w])*.5,s=sx+sy,k=(s<0?-s:s)*.06,al=(17.85*k/(1+k))|0;   /* ≈ 0.07·255·(1-e^-k) */
         px[i]=al<<24|(s>0?0xffffff:0);if(al>ma)ma=al;
-        if(refract){const r=128+clamp(sx*4,-127,127),g=128+clamp(sy*4,-127,127);mp[i]=0xff800000|g<<8|r}
+        if(refract){
+          const r=(128+clamp(sx*4,-127,127))|0,g=(128+clamp(sy*4,-127,127))|0;mp[i]=0xff800000|g<<8|r;
+          if(r!==128||g!==128){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+        }
       }
     }
     this.a=b;this.b=a;
     this.cx.putImageData(this.img,0,0);
-    if(!ma){a.fill(0);b.fill(0);this.on=false;for(const L of this.layers)this.glass(L,null);return}   /* calm: clear and sleep */
-    if(refract&&!this.busy){this.busy=true;this.mx.putImageData(this.mimg,0,0);this.mx2.drawImage(this.mc,0,0,w*2,h*2);this.mc2.toBlob(bl=>this.swap(bl))}
+    if(!ma){a.fill(0);b.fill(0);this.on=false;this.glass(-1);return}   /* calm: clear and sleep */
+    if(refract&&!this.busy&&x1>=0){
+      const c=this.cell,p=this.pad,bx=Math.max(0,x0*c-p),by=Math.max(0,y0*c-p);
+      const bb=[bx,by,Math.min(innerWidth,(x1+1)*c+p)-bx,Math.min(innerHeight,(y1+1)*c+p)-by];
+      this.busy=true;this.mx.putImageData(this.mimg,0,0);this.mx2.drawImage(this.mc,0,0,w*2,h*2);this.mc2.toBlob(bl=>this.swap(bl,bb));
+    }
   },
-  /* the new map goes into the idle filter of each pair; two frames later (decoded) the layers switch to it */
-  swap(bl){
+  /* the new map goes into the idle filter; two frames later (decoded) the overlay switches to it, with its own bounds */
+  swap(bl,bb){
     if(!bl||!this.on||this.lite){this.busy=false;return}
-    const url=URL.createObjectURL(bl),k=this.flip^1;
-    for(const L of this.layers)L.fe[k].setAttribute('href',url);
+    const url=URL.createObjectURL(bl),k=this.flip^1,F=this.f[k],c=this.cell;
+    F.el.setAttribute('width',bb[2]);F.el.setAttribute('height',bb[3]);
+    for(const [n,v] of [['href',url],['x',-bb[0]],['y',-bb[1]],['width',this.w*c],['height',this.h*c]])F.fe.setAttribute(n,v);
     if(this.urls[k])URL.revokeObjectURL(this.urls[k]);this.urls[k]=url;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       this.flip=k;this.busy=false;
-      if(!this.on||this.lite)return;
-      for(const L of this.layers)this.glass(L,L.off&&O.f<=0?null:`wf-${L.id}${k}`);
+      if(this.on&&!this.lite)this.glass(k,bb);
     }));
-  },
-  flip:0
+  }
 };
 
 /* ── scroll story ── */
 const O={
-  st:-1,f:0,
+  st:-1,us:0,
   init(){
     $('#items').innerHTML=COLS.map((_,i)=>card(i+1)).join('');
     this.cards=$$('#items .card').map(el=>({el,img:el.querySelector('.thumb i')}));
@@ -293,7 +309,7 @@ const O={
   },
   measure(){
     const vh=Math.max(page.clientHeight,620),vw=page.clientWidth;
-    Object.assign(this,{vh,vw});this.rw.style.height=vh*7+'px';
+    Object.assign(this,{vh,vw});
     const {row,box,t}=this;
     row.style.cssText=box.style.cssText='';for(const p of this.pars)p.style.cssText='';t.style.transform='translateY(-50%)';
     const pr=this.pin.getBoundingClientRect(),rr=row.getBoundingClientRect();
@@ -304,11 +320,31 @@ const O={
     rg.setStart(tn,sp);rg.setEnd(tn,sp+1);this.g4=rg.getBoundingClientRect().width*.4/4;
     const m=64,g=16,cw=(vw-2*m-11*g)/12,iw=3*cw+2*g;this.ch=iw*9/16+40;
     this.cards.forEach((c,i)=>{c.el.style.width=iw+'px';c.el.style.left=m+(COLS[i]-1)*(cw+g)+'px'});
+    /* schedule: each item starts as early as possible without ever touching an item that shares its columns,
+       even though the items travel at different speeds */
+    const Y0=vh+30,Y1=-this.ch-30,gap=this.ch+28,s=[];
+    const y=(j,u)=>Y0-(u-s[j])*SPD[j]*vh,dur=j=>(Y0-Y1)/(SPD[j]*vh);
+    for(let j=0;j<COLS.length;j++){
+      s[j]=Math.max(.9+j*.18,j?s[j-1]+.06:0);
+      for(let ok=false;!ok;){
+        ok=true;
+        for(let i=0;i<j&&ok;i++){
+          if(Math.abs(COLS[i]-COLS[j])>=3)continue;
+          for(let q=s[j];q<=s[j]+dur(j);q+=.01){const yi=y(i,q);if(yi<=Y0&&yi>=Y1&&Math.abs(yi-y(j,q))<gap){ok=false;break}}
+        }
+        if(!ok)s[j]+=.02;
+      }
+    }
+    this.s=s;this.Y=[Y0,Y1];
+    this.uF=Math.max(...s.map((v,j)=>v+dur(j)))+.05;   /* footer starts once the last work has left */
+    this.rw.style.height=vh*(this.uF+2.6)+'px';
     this.st=-1;
   },
   tick(){
-    const st=page.scrollTop;if(st===this.st)return;this.st=st;
-    const {vh,vw,row,t}=this,u=st/vh;
+    const st=page.scrollTop,u=st/this.vh;
+    if(st===this.st&&Math.abs(this.us-u)<1e-4)return;this.st=st;
+    this.us=Math.abs(this.us-u)>2?u:lerp(this.us,u,.1);   /* works glide on a softly eased copy of the scroll */
+    const {vh,vw,row,t}=this;
     /* 1 item squeezed · 2 parentheses vanish · 3 words merge at the centre · 4 the same text grows into the blurred title
        · 5 works travel across in front of it, in mirrored left/right pairs · 6 footer opens from the centre line */
     const sq=ease(clamp(u/.3)),ph=smooth(.22,.38,u),m=ease(clamp((u-.28)/.22));
@@ -321,15 +357,17 @@ const O={
     row.style.visibility=sw?'hidden':'';t.style.visibility=sw?'visible':'';
     this.tp.style.opacity=1-tt;this.fx.style.opacity=tt;
     t.style.transform=`translateY(-50%) scale(${lerp(.4,1,tt)})`;
+    const [Y0,Y1]=this.Y;
     this.cards.forEach((c,j)=>{
-      const k=1+((j>>1)%3)*.07,p=clamp((u-.9-j*.2)/(1.2/k));   /* both cards of a pair share one speed */
-      c.el.style.opacity=p>0&&p<1?1:0;
-      if(p>0&&p<1){c.el.style.transform=`translate3d(0,${lerp(vh+30,-this.ch-30,p)}px,0)`;c.img.style.transform=`translate3d(0,${(.5-p)*-18}%,0)`}
+      const yy=Y0-(this.us-this.s[j])*SPD[j]*vh,on=yy<=Y0&&yy>=Y1;
+      c.el.style.opacity=on?1:0;
+      if(on){c.el.style.transform=`translate3d(0,${yy}px,0)`;c.img.style.transform=`translate3d(0,${((yy-Y1)/(Y0-Y1)-.5)*18}%,0)`}
     });
-    const f=this.f=ease(clamp((u-4.1)/1.2)),half=(1-f)*(vh-64)/2;
+    /* footer grows from the bottom centre, up and outwards */
+    const uF=this.uF,f=ease(clamp((u-uF)/1.2)),W=vw-64,H=vh-64;
     this.fp.style.visibility=f>0?'visible':'hidden';
-    this.fp.style.clipPath=`inset(${half}px 0 ${half}px 0 round 32px)`;
-    reveal(this.foot,this.foot._on?u>5.15:u>5.35);
+    this.fp.style.clipPath=`inset(${(1-f)*H}px ${(1-f)*W/2}px 0 ${(1-f)*W/2}px round 32px)`;
+    reveal(this.foot,this.foot._on?u>uF+1.05:u>uF+1.25);
   }
 };
 
@@ -341,7 +379,7 @@ function loop(now){
   const dt=now-lastT;lastT=now;
   if(Water.on&&Water.adaptive&&!Water.lite&&dt<250){
     avg=avg*.85+dt*.15;
-    if(avg>22&&++slow>12){Water.lite=true;for(const L of Water.layers)Water.glass(L,null)}
+    if(avg>22&&++slow>12){Water.lite=true;Water.glass(-1)}
   }else slow=Math.max(0,slow-1);
   requestAnimationFrame(loop);
 }
