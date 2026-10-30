@@ -104,7 +104,7 @@ svg{display:block}
 .items{position:absolute;inset:0;z-index:22;pointer-events:none}
 .items .card{position:absolute;top:0;opacity:0;will-change:transform}
 
-/* ── footer: grows from the bottom centre (clip-path set by the script) ── */
+/* ── footer: the purple panel is uncovered from the bottom up (clip-path set by the script) ── */
 .footp{position:absolute;z-index:30;inset:32px;border-radius:32px;background:var(--pink);overflow:hidden;visibility:hidden}
 .foot{position:absolute;inset:0}
 .foot .col{position:absolute;top:56px;font-size:16px}
@@ -392,11 +392,14 @@ const O={
     const vw=page.clientWidth,G=GRID(vw),vh=Math.max(page.clientHeight,G.minH);
     Object.assign(this,{vh,vw});this.pin.style.height=vh+'px';
     const {row,box,t}=this;
-    row.style.cssText=box.style.cssText='';for(const p of this.pars)p.style.cssText='';t.style.transform='translateY(-50%)';
+    row.style.cssText=box.style.cssText=this.intro.style.top='';
+    /* mobile: intro + row form one frame, 40px apart, centred vertically below the nav */
+    if(G.n===4){const ih=this.intro.offsetHeight,top=Math.max(72,(vh-ih-40-box.offsetHeight)/2);
+      this.intro.style.top=top+'px';row.style.top=top+ih+40+'px';row.style.bottom='auto'}for(const p of this.pars)p.style.cssText='';t.style.transform='translateY(-50%)';
     /* sizes come from the active breakpoint's CSS */
     this.bw=box.offsetWidth;this.bh=box.offsetHeight;this.gap0=parseFloat(getComputedStyle(row).columnGap);
     this.s0=parseFloat(getComputedStyle(row).fontSize)/parseFloat(getComputedStyle(t).fontSize);   /* title starts at the row's size */
-    this.fw=this.fp.offsetWidth;this.fh=this.fp.offsetHeight;this.fr=getComputedStyle(this.fp).borderTopLeftRadius;
+    this.fh=this.fp.offsetHeight;this.fr=getComputedStyle(this.fp).borderTopLeftRadius;
     const pr=this.pin.getBoundingClientRect(),rr=row.getBoundingClientRect();
     this.parW=this.pars[0].getBoundingClientRect().width;
     this.dy0=rr.top+rr.height/2-(pr.top+pr.height/2);
@@ -431,7 +434,7 @@ const O={
     this.us=Math.abs(this.us-u)>2?u:lerp(this.us,u,.1);   /* works glide on a softly eased copy of the scroll */
     const {vh,row,t}=this;
     /* 1 item squeezed · 2 parentheses vanish · 3 words merge at the centre · 4 the same text grows into the blurred title
-       · 5 works travel across in front of it, in mirrored left/right pairs · 6 footer opens from the centre line */
+       · 5 works travel across in front of it, in mirrored left/right pairs · 6 footer is uncovered from the bottom up */
     const sq=ease(clamp(u/.3)),ph=smooth(.22,.38,u),m=ease(clamp((u-.28)/.22));
     this.box.style.width=this.bw*(1-sq)+'px';this.box.style.height=this.bh*(1-sq)+'px';
     for(const p of this.pars){p.style.overflow='hidden';p.style.width=this.parW*(1-m)+'px';p.style.opacity=1-ph}
@@ -448,10 +451,10 @@ const O={
       c.el.style.opacity=on?1:0;
       if(on){c.el.style.transform=`translate3d(0,${yy}px,0)`;c.img.style.transform=`translate3d(0,${((yy-Y1)/(Y0-Y1)-.5)*18}%,0)`}
     });
-    /* footer grows from the bottom centre, up and outwards */
-    const uF=this.uF,f=ease(clamp((u-uF)/1.2)),W=this.fw,H=this.fh;
+    /* footer: a full-width wipe, bottom → top */
+    const uF=this.uF,f=ease(clamp((u-uF)/1.2)),H=this.fh;
     this.fp.style.visibility=f>0?'visible':'hidden';
-    this.fp.style.clipPath=`inset(${(1-f)*H}px ${(1-f)*W/2}px 0 ${(1-f)*W/2}px round ${this.fr})`;
+    this.fp.style.clipPath=`inset(${(1-f)*H}px 0 0 round ${this.fr})`;
     reveal(this.foot,this.foot._on?u>uF+1.05:u>uF+1.25);
   }
 };
