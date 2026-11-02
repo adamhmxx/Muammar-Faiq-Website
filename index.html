@@ -299,7 +299,7 @@ const Water={
   init(){
     this.cv=$('#water');this.cx=this.cv.getContext('2d');this.gl=$('#glass');
     this.mc=document.createElement('canvas');this.mx=this.mc.getContext('2d');
-    this.mc2=document.createElement('canvas');this.mx2=this.mc2.getContext('2d');   /* map smoothed 2x so the bends stay soft */
+    this.mc2=document.createElement('canvas');this.mx2=this.mc2.getContext('2d');   /* map upscaled 2x and blurred so the bends stay soft */
     this.size();
     addEventListener('pointermove',e=>{if(e.pointerType!=='touch')this.poke(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{this.last=null});
@@ -312,7 +312,7 @@ const Water={
     const c=this.cell,w=Math.ceil(innerWidth/c)+2,h=Math.ceil(innerHeight/c)+2;
     Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false,busy:false});
     this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;this.mc2.width=w*2;this.mc2.height=h*2;
-    this.mx2.imageSmoothingQuality='high';this.mx2.filter='blur(1.5px)';
+    this.mx2.imageSmoothingQuality='high';this.mx2.filter='blur(1.8px)';
     this.img=this.cx.createImageData(w,h);this.px=new Uint32Array(this.img.data.buffer);
     this.mimg=this.mx.createImageData(w,h);this.mp=new Uint32Array(this.mimg.data.buffer);
     /* double-buffered filters: the idle one receives the next map while the other is on screen */
@@ -331,11 +331,11 @@ const Water={
     const n=Math.ceil(dist/this.cell),amp=(Math.min(1,dist/60)*.9+.1)*26.6;
     for(let s=1;s<=n;s++)this.drop(lerp(l.x,x,s/n)/this.cell,lerp(l.y,y,s/n)/this.cell,amp);
   },
-  drop(cx,cy,amp){   /* push the surface down around one grid point */
-    const {w,h,a}=this,R=2.7;
+  drop(cx,cy,amp){   /* push the surface down around one grid point, with a smooth (cosine) bell */
+    const {w,h,a}=this,R=3.4;
     for(let yy=Math.max(1,Math.floor(cy-R));yy<=Math.min(h-2,Math.ceil(cy+R));yy++)
       for(let xx=Math.max(1,Math.floor(cx-R));xx<=Math.min(w-2,Math.ceil(cx+R));xx++){
-        const d=Math.hypot(xx-cx,yy-cy);if(d<R){const t=1-d/R;a[yy*w+xx]-=amp*t*t}
+        const d=Math.hypot(xx-cx,yy-cy);if(d<R)a[yy*w+xx]-=amp*.42*(1+Math.cos(Math.PI*d/R))
       }
     this.on=true;
   },
@@ -346,10 +346,11 @@ const Water={
     for(let y=1;y<h-1;y++){
       for(let x=1,i=y*w+1;x<w-1;x++,i++){
         b[i]=((a[i-1]+a[i+1]+a[i-w]+a[i+w])*.5-b[i])*.982;
-        const sx=(a[i+1]-a[i-1])*.5,sy=(a[i+w]-a[i-w])*.5,s=sx+sy,k=(s<0?-s:s)*.06,al=(17.85*k/(1+k))|0;   /* ≈ 0.07·255·(1-e^-k) */
+        /* Sobel slope: smoothed across the other axis, so neighbouring cells bend the same way */
+        const sx=((a[i+1]-a[i-1])*2+a[i-w+1]-a[i-w-1]+a[i+w+1]-a[i+w-1])*.125,sy=((a[i+w]-a[i-w])*2+a[i+w-1]-a[i-w-1]+a[i+w+1]-a[i-w+1])*.125,s=sx+sy,k=(s<0?-s:s)*.06,al=(17.85*k/(1+k))|0;   /* ≈ 0.07·255·(1-e^-k) */
         px[i]=al<<24|(s>0?0xffffff:0);if(al>ma)ma=al;
         if(build){
-          const r=(128+clamp(sx*4,-127,127))|0,g=(128+clamp(sy*4,-127,127))|0;mp[i]=0xff800000|g<<8|r;
+          const dx=sx*3.5,dy=sy*3.5,r=(128+dx/(1+Math.abs(dx)/127))|0,g=(128+dy/(1+Math.abs(dy)/127))|0;   /* soft limit: no flat plateaus */mp[i]=0xff800000|g<<8|r;
           if(r!==128||g!==128){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
         }
       }
