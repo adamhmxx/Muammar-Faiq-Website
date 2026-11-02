@@ -26,10 +26,11 @@ svg{display:block}
 #page::-webkit-scrollbar{display:none}
 .pin{position:sticky;top:0;height:100vh;overflow:hidden}   /* height set in px by the script */
 
-/* ── water surface: cursor ripples spread over the whole page (highlight canvas). The same wave field refracts every
-      layer below it, buttons and links included: a displacement map rebuilt from the simulation drives a backdrop-filter. ── */
+/* ── water surface: cursor ripples spread over the whole page (highlight canvas). Every ripple also refracts the layers
+      below it, buttons and links included, through a ring of glass (backdrop-filter) that grows with the wave. ── */
 #water{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1000}
-#glass{position:fixed;left:0;top:0;width:0;height:0;z-index:999;pointer-events:none}
+#glass{position:fixed;inset:0;z-index:999;pointer-events:none}
+#glass i{position:absolute;left:0;top:0;display:none;will-change:transform}
 
 /* ── nav pill ── */
 .clock{position:fixed;z-index:60;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:24px;height:56px;
@@ -292,44 +293,71 @@ for(const el of $$('.btn,.soc a,.tip')){
   }
 }
 
-/* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. The same field becomes a displacement map
-      for one backdrop-filter overlay that is sized to the rippling area only, so the cost follows the ripples ── */
+/* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. Refraction: every ripple also gets a ring of
+      glass that grows with the wave and bends the layers below it. All rings displace by one static ring map, decoded
+      once, so the bend is there on every frame (a map that changes per frame would have to reload and skip frames) ── */
+const RING={n:14,life:.8,gap:60,v:260,r0:20,crest:.85,amp:15};   /* crest runs at the simulated wave's speed (≈260px/s) */
 const Water={
-  cell:6,pad:18,on:false,last:null,lite:false,fly:0,seq:0,shown:0,urls:[],
+  cell:6,on:false,last:null,lite:false,acc:0,lastRing:0,
   init(){
-    this.cv=$('#water');this.cx=this.cv.getContext('2d');this.gl=$('#glass');
-    this.mc=document.createElement('canvas');this.mx=this.mc.getContext('2d');
-    this.size();
+    this.cv=$('#water');this.cx=this.cv.getContext('2d');
+    this.size();this.glassInit();
     addEventListener('pointermove',e=>{if(e.pointerType!=='touch')this.poke(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{this.last=null});
     /* touch: a tap drops a ripple, a drag (also while scrolling) draws a trail */
-    addEventListener('touchstart',e=>{const t=e.touches[0];this.last={x:t.clientX,y:t.clientY};this.drop(t.clientX/this.cell,t.clientY/this.cell,16)},{passive:true});
+    addEventListener('touchstart',e=>{const t=e.touches[0];this.last={x:t.clientX,y:t.clientY};this.drop(t.clientX/this.cell,t.clientY/this.cell,16);this.ring(t.clientX,t.clientY,.8)},{passive:true});
     addEventListener('touchmove',e=>{const t=e.touches[0];this.poke(t.clientX,t.clientY)},{passive:true});
     addEventListener('touchend',()=>{this.last=null},{passive:true});
   },
   size(){
     const c=this.cell,w=Math.ceil(innerWidth/c)+2,h=Math.ceil(innerHeight/c)+2;
-    Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false,fly:0});
-    this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;
+    Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false});
+    this.cv.width=w;this.cv.height=h;
     this.img=this.cx.createImageData(w,h);this.px=new Uint32Array(this.img.data.buffer);
-    this.mimg=this.mx.createImageData(w,h);this.mp=new Uint32Array(this.mimg.data.buffer);
-    /* 4 filters in a ring: one on screen, up to 3 maps on their way, so a new map can start every frame. The map is sent at
-       one pixel per cell (tiny, so it encodes fast and keeps up with the waves) and blurred on the GPU at screen
-       resolution, so the bends are perfectly smooth */
-    $('#wf').innerHTML=[0,1,2,3].map(k=>`<filter id="wf${k}" filterUnits="userSpaceOnUse" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feImage preserveAspectRatio="none" result="c"/><feGaussianBlur in="c" stdDeviation="4" result="m"/><feDisplacementMap in="SourceGraphic" in2="m" scale="23.4" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('');
-    this.f=[0,1,2,3].map(k=>({el:$('#wf'+k),fe:$(`#wf${k} feImage`)}));this.glass(-1);
   },
-  glass(k,bb){
-    const g=this.gl.style;
-    if(k<0){g.backdropFilter=g.webkitBackdropFilter='';g.width=g.height='0';return}
-    g.transform=`translate(${bb[0]}px,${bb[1]}px)`;g.width=bb[2]+'px';g.height=bb[3]+'px';
-    g.backdropFilter=g.webkitBackdropFilter=`url(#wf${k})`;
+  /* the ring map: R/G = 128 + outward bend of one smooth swell (crest + trough), fading in and out so it has no edge */
+  glassInit(){
+    const N=192,c=document.createElement('canvas');c.width=c.height=N;
+    const x=c.getContext('2d'),im=x.createImageData(N,N),d=im.data;
+    const g=r=>Math.sin(2*Math.PI*(r-.5)/.5)*smooth(.5,.62,r)*(1-smooth(.88,1,r));
+    let gm=0,gp=0;for(let r=0;r<1;r+=.001){gm=Math.max(gm,Math.abs(g(r)));gp=Math.max(gp,Math.abs(g(r+.001)-g(r))/.001)}
+    this.fold=.3*gm/gp;   /* bend limit per px of ring size, with room for overlapping rings: steeper would fold the image over itself (torn letters) */
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+      const u=(i+.5)/N*2-1,v=(j+.5)/N*2-1,r=Math.hypot(u,v),k=(j*N+i)*4,b=r<1?127*g(r)/gm/r:0;
+      d[k]=128+b*u;d[k+1]=128+b*v;d[k+2]=128;d[k+3]=255;
+    }
+    x.putImageData(im,0,0);
+    c.toBlob(bl=>{
+      const url=URL.createObjectURL(bl),gl=$('#glass');
+      $('#wf').innerHTML=Array.from({length:RING.n},(_,k)=>`<filter id="rf${k}" x="0" y="0" width="1" height="1" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB"><feImage href="${url}" x="0" y="0" width="1" height="1" preserveAspectRatio="none"/><feDisplacementMap in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('');
+      this.pool=Array.from({length:RING.n},(_,k)=>{
+        const el=document.createElement('i');el.style.backdropFilter=el.style.webkitBackdropFilter=`url(#rf${k})`;gl.append(el);
+        return {el,dm:$(`#rf${k} feDisplacementMap`),t0:-1};
+      });
+    });
+  },
+  ring(x,y,a){   /* a free ring, or the oldest (already faded by then) */
+    const now=performance.now();if(this.lite||!this.pool||now-this.lastRing<RING.gap)return;this.lastRing=now;
+    let R=this.pool[0];for(const r of this.pool){if(r.t0<0){R=r;break}if(r.t0<R.t0)R=r}
+    Object.assign(R,{t0:now,x,y,a});R.el.style.display='block';
+  },
+  glass(now){   /* grow every live ring with its wave; its bend weakens with distance and fades smoothly to zero */
+    if(!this.pool)return;
+    for(const R of this.pool){
+      if(R.t0<0)continue;
+      const t=(now-R.t0)/1000;
+      if(t>=RING.life||this.lite){R.t0=-1;R.el.style.display='none';continue}
+      const r=RING.r0+RING.v*t,S=2*r/RING.crest,A=Math.min(RING.amp*R.a*Math.sqrt(RING.r0/r)*3,this.fold*S/2)*(1-t/RING.life)**1.5;
+      R.el.style.transform=`translate3d(${R.x-S/2}px,${R.y-S/2}px,0)`;R.el.style.width=R.el.style.height=S+'px';
+      R.dm.setAttribute('scale',(2*A/S).toFixed(5));
+    }
   },
   poke(x,y){
     const l=this.last;this.last={x,y};if(!l)return;
     const dist=Math.hypot(x-l.x,y-l.y);if(dist<1)return;
-    const n=Math.ceil(dist/this.cell),amp=(Math.min(1,dist/60)*.9+.1)*26.6;
+    const n=Math.ceil(dist/this.cell),k=Math.min(1,dist/60)*.9+.1,amp=k*26.6;
     for(let s=1;s<=n;s++)this.drop(lerp(l.x,x,s/n)/this.cell,lerp(l.y,y,s/n)/this.cell,amp);
+    if((this.acc+=dist)>=36){this.acc=0;this.ring(x,y,.35+.65*Math.min(1,dist/40))}
   },
   drop(cx,cy,amp){   /* push the surface down around one grid point, with a smooth (cosine) bell */
     const {w,h,a}=this,R=3.4;
@@ -341,40 +369,18 @@ const Water={
   },
   frame(){
     if(!this.on)return;
-    /* the displacement map is only built on frames that will actually send it */
-    const {w,h,a,b,px,mp}=this,build=!this.lite&&this.fly<3;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
+    const {w,h,a,b,px}=this;let ma=0;
     for(let y=1;y<h-1;y++){
       for(let x=1,i=y*w+1;x<w-1;x++,i++){
         b[i]=((a[i-1]+a[i+1]+a[i-w]+a[i+w])*.5-b[i])*.982;
-        /* Sobel slope: smoothed across the other axis, so neighbouring cells bend the same way */
+        /* Sobel slope: smoothed across the other axis, so neighbouring cells shade the same way */
         const sx=((a[i+1]-a[i-1])*2+a[i-w+1]-a[i-w-1]+a[i+w+1]-a[i+w-1])*.125,sy=((a[i+w]-a[i-w])*2+a[i+w-1]-a[i-w-1]+a[i+w+1]-a[i-w+1])*.125,s=sx+sy,k=(s<0?-s:s)*.06,al=(17.85*k/(1+k))|0;   /* ≈ 0.07·255·(1-e^-k) */
         px[i]=al<<24|(s>0?0xffffff:0);if(al>ma)ma=al;
-        if(build){
-          const dx=sx*3.5,dy=sy*3.5,r=(128+dx/(1+Math.abs(dx)/127))|0,g=(128+dy/(1+Math.abs(dy)/127))|0;   /* soft limit: no flat plateaus */mp[i]=0xff800000|g<<8|r;
-          if(r!==128||g!==128){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-        }
       }
     }
     this.a=b;this.b=a;
     this.cx.putImageData(this.img,0,0);
-    if(!ma){a.fill(0);b.fill(0);this.on=false;this.glass(-1);return}   /* calm: clear and sleep */
-    if(build&&x1>=0){
-      const c=this.cell,p=this.pad,bx=Math.max(0,x0*c-p),by=Math.max(0,y0*c-p);
-      const bb=[bx,by,Math.min(innerWidth,(x1+1)*c+p)-bx,Math.min(innerHeight,(y1+1)*c+p)-by];
-      this.fly++;const id=++this.seq;this.mx.putImageData(this.mimg,0,0);this.mc.toBlob(bl=>this.swap(bl,bb,id));
-    }
-  },
-  /* the map goes into its own filter of the ring; two frames later (decoded) the overlay switches to it, unless a newer one is already up */
-  swap(bl,bb,id){
-    if(!bl||!this.on||this.lite){this.fly=Math.max(0,this.fly-1);return}
-    const url=URL.createObjectURL(bl),k=id%4,F=this.f[k],c=this.cell;
-    F.el.setAttribute('width',bb[2]);F.el.setAttribute('height',bb[3]);
-    for(const [n,v] of [['href',url],['x',-bb[0]],['y',-bb[1]],['width',this.w*c],['height',this.h*c]])F.fe.setAttribute(n,v);
-    if(this.urls[k])URL.revokeObjectURL(this.urls[k]);this.urls[k]=url;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      this.fly=Math.max(0,this.fly-1);
-      if(id>this.shown&&this.on&&!this.lite){this.shown=id;this.glass(k,bb)}
-    }));
+    if(!ma){a.fill(0);b.fill(0);this.on=false}   /* calm: clear and sleep */
   }
 };
 
@@ -464,11 +470,11 @@ const O={
 /* adaptive quality: if refraction pushes frames past budget, keep the highlight ripples only */
 let lastT=0,avg=16,slow=0;
 function loop(now){
-  O.tick();Water.frame();
+  O.tick();Water.frame();Water.glass(now);
   const dt=now-lastT;lastT=now;
   if(Water.on&&!Water.lite&&dt<250){
     avg=avg*.85+dt*.15;
-    if(avg>22&&++slow>12){Water.lite=true;Water.glass(-1)}
+    if(avg>22&&++slow>12)Water.lite=true;
   }else slow=Math.max(0,slow-1);
   requestAnimationFrame(loop);
 }
