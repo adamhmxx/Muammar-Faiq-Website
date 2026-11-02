@@ -295,11 +295,10 @@ for(const el of $$('.btn,.soc a,.tip')){
 /* ── water: wave simulation on a coarse grid, drawn as light/shade ripples. The same field becomes a displacement map
       for one backdrop-filter overlay that is sized to the rippling area only, so the cost follows the ripples ── */
 const Water={
-  cell:6,pad:12,on:false,last:null,lite:false,busy:false,flip:0,urls:[null,null],
+  cell:6,pad:18,on:false,last:null,lite:false,fly:0,seq:0,shown:0,urls:[],
   init(){
     this.cv=$('#water');this.cx=this.cv.getContext('2d');this.gl=$('#glass');
     this.mc=document.createElement('canvas');this.mx=this.mc.getContext('2d');
-    this.mc2=document.createElement('canvas');this.mx2=this.mc2.getContext('2d');   /* map upscaled 2x and blurred so the bends stay soft */
     this.size();
     addEventListener('pointermove',e=>{if(e.pointerType!=='touch')this.poke(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',()=>{this.last=null});
@@ -310,14 +309,15 @@ const Water={
   },
   size(){
     const c=this.cell,w=Math.ceil(innerWidth/c)+2,h=Math.ceil(innerHeight/c)+2;
-    Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false,busy:false});
-    this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;this.mc2.width=w*2;this.mc2.height=h*2;
-    this.mx2.imageSmoothingQuality='high';this.mx2.filter='blur(1.8px)';
+    Object.assign(this,{w,h,a:new Float32Array(w*h),b:new Float32Array(w*h),on:false,fly:0});
+    this.cv.width=this.mc.width=w;this.cv.height=this.mc.height=h;
     this.img=this.cx.createImageData(w,h);this.px=new Uint32Array(this.img.data.buffer);
     this.mimg=this.mx.createImageData(w,h);this.mp=new Uint32Array(this.mimg.data.buffer);
-    /* double-buffered filters: the idle one receives the next map while the other is on screen */
-    $('#wf').innerHTML=[0,1].map(k=>`<filter id="wf${k}" filterUnits="userSpaceOnUse" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feImage preserveAspectRatio="none" result="m"/><feDisplacementMap in="SourceGraphic" in2="m" scale="23.4" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('');
-    this.f=[0,1].map(k=>({el:$('#wf'+k),fe:$(`#wf${k} feImage`)}));this.glass(-1);
+    /* 4 filters in a ring: one on screen, up to 3 maps on their way, so a new map can start every frame. The map is sent at
+       one pixel per cell (tiny, so it encodes fast and keeps up with the waves) and blurred on the GPU at screen
+       resolution, so the bends are perfectly smooth */
+    $('#wf').innerHTML=[0,1,2,3].map(k=>`<filter id="wf${k}" filterUnits="userSpaceOnUse" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB"><feImage preserveAspectRatio="none" result="c"/><feGaussianBlur in="c" stdDeviation="4" result="m"/><feDisplacementMap in="SourceGraphic" in2="m" scale="23.4" xChannelSelector="R" yChannelSelector="G"/></filter>`).join('');
+    this.f=[0,1,2,3].map(k=>({el:$('#wf'+k),fe:$(`#wf${k} feImage`)}));this.glass(-1);
   },
   glass(k,bb){
     const g=this.gl.style;
@@ -342,7 +342,7 @@ const Water={
   frame(){
     if(!this.on)return;
     /* the displacement map is only built on frames that will actually send it */
-    const {w,h,a,b,px,mp}=this,build=!this.lite&&!this.busy;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
+    const {w,h,a,b,px,mp}=this,build=!this.lite&&this.fly<3;let ma=0,x0=w,y0=h,x1=-1,y1=-1;
     for(let y=1;y<h-1;y++){
       for(let x=1,i=y*w+1;x<w-1;x++,i++){
         b[i]=((a[i-1]+a[i+1]+a[i-w]+a[i+w])*.5-b[i])*.982;
@@ -361,19 +361,19 @@ const Water={
     if(build&&x1>=0){
       const c=this.cell,p=this.pad,bx=Math.max(0,x0*c-p),by=Math.max(0,y0*c-p);
       const bb=[bx,by,Math.min(innerWidth,(x1+1)*c+p)-bx,Math.min(innerHeight,(y1+1)*c+p)-by];
-      this.busy=true;this.mx.putImageData(this.mimg,0,0);this.mx2.drawImage(this.mc,0,0,w*2,h*2);this.mc2.toBlob(bl=>this.swap(bl,bb));
+      this.fly++;const id=++this.seq;this.mx.putImageData(this.mimg,0,0);this.mc.toBlob(bl=>this.swap(bl,bb,id));
     }
   },
-  /* the new map goes into the idle filter; two frames later (decoded) the overlay switches to it, with its own bounds */
-  swap(bl,bb){
-    if(!bl||!this.on||this.lite){this.busy=false;return}
-    const url=URL.createObjectURL(bl),k=this.flip^1,F=this.f[k],c=this.cell;
+  /* the map goes into its own filter of the ring; two frames later (decoded) the overlay switches to it, unless a newer one is already up */
+  swap(bl,bb,id){
+    if(!bl||!this.on||this.lite){this.fly=Math.max(0,this.fly-1);return}
+    const url=URL.createObjectURL(bl),k=id%4,F=this.f[k],c=this.cell;
     F.el.setAttribute('width',bb[2]);F.el.setAttribute('height',bb[3]);
     for(const [n,v] of [['href',url],['x',-bb[0]],['y',-bb[1]],['width',this.w*c],['height',this.h*c]])F.fe.setAttribute(n,v);
     if(this.urls[k])URL.revokeObjectURL(this.urls[k]);this.urls[k]=url;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      this.flip=k;this.busy=false;
-      if(this.on&&!this.lite)this.glass(k,bb);
+      this.fly=Math.max(0,this.fly-1);
+      if(id>this.shown&&this.on&&!this.lite){this.shown=id;this.glass(k,bb)}
     }));
   }
 };
