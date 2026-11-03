@@ -10,7 +10,6 @@
 <style>
 /* Dark, desktop-first single page. 12-col grid · margin 64 · gutter 16. Heading: Inter Display 500 · Body: Geist 400 */
 :root{color-scheme:dark;--bg:#0e0e10;--card:#1c1c1d;--pink:#8652ff;--pink2:#6b3fe0;--tx:#e8e8ea;--dim:rgba(255,255,255,.8);
-  --fill:1.34s cubic-bezier(.45,.05,.2,1);
   --hd:"Inter Display","Inter",system-ui,sans-serif;--bd:"Geist",system-ui,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:#fff;font-family:var(--bd);font-weight:400;
@@ -36,15 +35,13 @@ svg{display:block}
 .btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap;transition:background-color .35s ease}
 .btn:hover,.btn:focus-visible{background:var(--pink2)}   /* + its label scrambles (see script) */
 
-/* ── liquid hover (social icons, tool icons): a wave edge rises from below, its crests travel while it rises,
-      and the same motion plays backwards when the cursor leaves. GPU-only: translate + transform ── */
-.soc a,.tool{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
-.soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0/33.3333% 14px,linear-gradient(#fff,#fff) 0 12px/100% calc(100% - 12px) no-repeat;
-  translate:0 0;transition:translate var(--fill) .08s;animation:wv 1.5s linear infinite}
-.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
-.soc a:hover,.soc a:active,.tip:hover .tool{color:var(--bg)}
-@keyframes wv{to{transform:translateX(-33.3333%)}}
+/* ── icon hover (social icons, tool icons), same language as the button: the fill darkens and the icon flickers
+      through ASCII glyphs before it settles back (see script) ── */
+.soc a,.tool{position:relative;transition:background-color .35s ease}
+.soc a:hover,.soc a:focus-visible{background:rgba(255,255,255,.18)}
+.tip:hover .tool,.tip:focus-visible .tool{background:rgba(255,255,255,.02)}
+.gl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:13px "Geist Mono",ui-monospace,monospace;pointer-events:none}
+.scr svg{opacity:0}
 
 /* text links and the button scramble on hover (see script); the width is held so nothing shifts */
 .links a{width:max-content;white-space:nowrap}
@@ -136,9 +133,9 @@ svg{display:block}
   .foot .big{font-size:min(13.5vw,calc((100vw - 216px)/5))}
   .ar{width:96px;height:96px}
   /* touch sizes: no hover effects on the button, icons and text links */
-  .soc a::after,.tool::after{display:none}
-  .soc a:hover,.soc a:active,.tip:hover .tool{color:#fff}
   .btn:hover{background:var(--pink)}
+  .soc a:hover{background:rgba(255,255,255,.3)}
+  .tip:hover .tool{background:rgba(255,255,255,.05)}
   .tip>i,.ar .a2{display:none}
   .arrow:hover .a1,.arrow:focus-visible .a1{transform:none}
 }
@@ -177,7 +174,7 @@ svg{display:block}
     <section class="pin" id="pin">
       <div class="intro" id="intro">
         <img src="data:image/webp;base64,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" width="64" height="64" alt="Muammar Faiq">
-        <p class="hi">Hi, I am Muamar Faiq !</p>
+        <p class="hi">Hi, I am Muammar Faiq!</p>
         <h1 class="hl">2D Motion Designer specializing in After Effects and Rive. I create clean, smooth, and lightweight animations that bring apps, interfaces, and digital products to life.</h1>
         <div class="tools"><span class="tip" tabindex="0" aria-label="Rive App"><span class="tool"><svg width="27" height="28" aria-hidden="true"><use href="#i-r"/></svg></span><i>Rive App</i></span><span class="tip" tabindex="0" aria-label="Adobe After Effects"><span class="tool"><svg width="17" height="19" aria-hidden="true"><use href="#i-a"/></svg><svg width="13" height="15" class="e" aria-hidden="true"><use href="#i-e"/></svg></span><i>Adobe After Effects</i></span></div>
       </div>
@@ -186,8 +183,8 @@ svg{display:block}
       <div class="row hd" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
-          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#">Home</a><a data-rv href="#">Works</a><a data-rv href="#">About</a></nav></div>
-          <div class="col c2"><p class="lab" data-rv>Get in touch</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
+          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#" data-to="0">Home</a><a data-rv href="#" data-to="1">Works</a><a data-rv href="#" data-to="0">About</a></nav></div>
+          <div class="col c2"><p class="lab" data-rv>Socials</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
           <div class="col c3"><p data-rv>© 2026 Muammar Faiq. All rights reserved.</p></div>
           <div class="end"><h2 class="big hd" data-rv="110">Get in touch.</h2>
           <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a></div>
@@ -212,7 +209,7 @@ const GRID=w=>w<=640?{n:4,m:20,g:12,cols:[1,2,1,2,1,2,1,2,1,2],minH:520}      /*
   :w<=1024?{n:8,m:32,g:16,cols:[1,6,3,4,2,5,1,6,3,4],minH:600}                  /* tablet */
   :{n:12,m:64,g:16,cols:[1,10,4,7,2,9,3,8,5,6],minH:620};                        /* desktop */
 const card=i=>`<div class="card" style="--c:${COLORS[i%COLORS.length]}"><div class="thumb"><i></i></div><div class="meta"><h3 class="hd">Project title</h3><span>2026</span></div></div>`;
-const page=$('#page');
+const page=$('#page'),TOUCH=matchMedia('(max-width:1024px)'),CALM=matchMedia('(prefers-reduced-motion:reduce)');
 
 /* live WIB clock (Asia/Jakarta, UTC+7) */
 {
@@ -260,29 +257,28 @@ function reveal(root,on){
   },2300);
 }
 
-/* liquid hover: wave crests run forwards while filling and backwards while draining (compositor-only) */
-for(const el of $$('.soc a,.tip')){
-  let a=null;
-  const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName==='wv');
-  const on=()=>{const x=anim();if(!x)return;x.playbackRate=1;x.play()};
-  const off=()=>{const x=anim();if(!x)return;x.currentTime+=x.effect.getTiming().duration*1e3;x.playbackRate=-1};   /* room to run backwards without finishing */
-  el.addEventListener('pointerenter',on);el.addEventListener('pointerleave',off);
-  el.addEventListener('focus',on);el.addEventListener('blur',off);
-}
 
-/* text links and the button: letters scramble through ASCII glyphs and resolve back to text, left to right */
+/* text links and the button: letters scramble through ASCII glyphs and resolve back to text, left to right.
+   Icons: the glyph flickers through ASCII for a moment, then the icon returns. Off on touch sizes and for reduced motion */
 {
-  const GL=RAMP.slice(1)+NOISE;
-  const touch=matchMedia('(max-width:1024px)');   /* off on tablet & mobile */
+  const GL=RAMP.slice(1)+NOISE,rnd=()=>GL[(Math.random()*GL.length)|0];
+  for(const el of $$('.soc a,.tip .tool')){
+    const gl=document.createElement('b');gl.className='gl';gl.setAttribute('aria-hidden','true');let id=0;
+    (el.closest('.tip')||el).addEventListener('pointerenter',()=>{
+      if(TOUCH.matches||CALM.matches||id)return;
+      const t0=performance.now();el.classList.add('scr');el.append(gl);
+      id=setInterval(()=>{if(performance.now()-t0>420){clearInterval(id);id=0;gl.remove();el.classList.remove('scr')}else gl.textContent=rnd()+rnd()},45);
+    });
+  }
   for(const el of $$('.links a,.btn')){
-    const txt=el.textContent;let raf=0;
+    const txt=el.textContent;let raf=0;if(!el.hasAttribute('aria-label'))el.setAttribute('aria-label',txt);   /* screen readers never hear the scramble */
     const run=()=>{
-      if(touch.matches)return;
+      if(TOUCH.matches||CALM.matches)return;
       cancelAnimationFrame(raf);el.style.width=el.offsetWidth+'px';
       const t0=performance.now(),ends=[...txt].map((_,i)=>140+i*70+Math.random()*120);let last=0;
       const f=n=>{
         const t=n-t0;
-        if(n-last>40){last=n;el.textContent=[...txt].map((c,i)=>t>=ends[i]||c===' '?c:GL[(Math.random()*GL.length)|0]).join('')}
+        if(n-last>40){last=n;el.textContent=[...txt].map((c,i)=>t>=ends[i]||c===' '?c:rnd()).join('')}
         if(t<ends[ends.length-1])raf=requestAnimationFrame(f);else{el.textContent=txt;el.style.width=''}
       };
       raf=requestAnimationFrame(f);
@@ -306,11 +302,12 @@ const Ascii={
     this.keep=$$('.btn,.links a,.soc a,.arrow,.tool');   /* buttons and links stay themselves inside the lens */
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
-    const at=(x,y)=>{if(!page.classList.contains('loading'))this.p={x,y}},off=()=>{this.p=null};
+    const at=(x,y)=>{if(!page.classList.contains('loading')&&!CALM.matches)this.p={x,y}},off=()=>{this.p=null};
     addEventListener('pointermove',e=>at(e.clientX,e.clientY),{passive:true});
     document.documentElement.addEventListener('pointerleave',off);
-    addEventListener('touchstart',e=>{const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY)},{passive:true});
-    addEventListener('touchmove',e=>{const t=e.touches[0];at(t.clientX,t.clientY)},{passive:true});
+    /* touch: the lens sits above the finger, where it can be seen */
+    addEventListener('touchstart',e=>{const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY-this.R*.7)},{passive:true});
+    addEventListener('touchmove',e=>{const t=e.touches[0];at(t.clientX,t.clientY-this.R*.7)},{passive:true});
     addEventListener('touchend',off,{passive:true});
   },
   size(){
@@ -373,19 +370,24 @@ const Ascii={
       a[k]=v<.01?0:v;if(a[k]){if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
     }
     const c=this.cx,d=this.dpr;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.cv.width,this.cv.height);
-    this.on=i1>=0;if(!this.on)return;   /* all faded: sleep */
-    const box={left:i0*cw,top:j0*ch,right:(i1+1)*cw,bottom:(j1+1)*ch},s=this.sx,w=i1-i0+1,h=j1-j0+1;
-    for(const mono of [0,1]){
-      s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(i0,j0+mono*rows,w,h);
-      s.setTransform(1/cw,0,0,1/ch,0,mono*rows);s.textBaseline='middle';
-      this.paint($('#pin'),s,box,false,mono);this.paint($('.clock'),s,box,false,mono);
+    this.on=i1>=0;if(!this.on){this.snap=null;return}   /* all faded: sleep */
+    let S=this.snap;const st=page.scrollTop;
+    if(!S||st!==S.st||++S.n>2||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
+      const x0=Math.max(0,i0-6),y0=Math.max(0,j0-4),w=Math.min(cols,i1+7)-x0,h=Math.min(rows,j1+5)-y0,s=this.sx;
+      const box={left:x0*cw,top:y0*ch,right:(x0+w)*cw,bottom:(y0+h)*ch};
+      for(const mono of [0,1]){
+        s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(x0,y0+mono*rows,w,h);
+        s.setTransform(1/cw,0,0,1/ch,0,mono*rows);s.textBaseline='middle';
+        this.paint($('#pin'),s,box,false,mono);this.paint($('.clock'),s,box,false,mono);
+      }
+      S=this.snap={i0:x0,j0:y0,w,h,st,n:0,box,px:s.getImageData(x0,y0,w,h).data,cv:s.getImageData(x0,y0+rows,w,h).data};
     }
-    const px=s.getImageData(i0,j0,w,h).data,cv=s.getImageData(i0,j0+rows,w,h).data;
+    const {px,cv,box}=S,w=S.w;
     c.setTransform(d,0,0,d,0,0);c.font=`${ch*.9}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
     const N=RAMP.length-1;
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
-      const o=((j-j0)*w+i-i0)*4,A=cv[o]/255;
+      const o=((j-S.j0)*w+i-S.i0)*4,A=cv[o]/255;
       c.globalAlpha=smooth(.05,.45,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06)continue;
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
@@ -491,6 +493,7 @@ function loop(){
 }
 Ascii.init();O.init();
 document.addEventListener('click',e=>{if(e.target.closest('a[href="#"]'))e.preventDefault()});
+for(const a of $$('[data-to]'))a.addEventListener('click',()=>animateScroll(+a.dataset.to*O.vh,1800));   /* Home / About: top · Works: the works */
 {
   let rw=innerWidth,rh=innerHeight;const coarse=matchMedia('(pointer:coarse)');
   addEventListener('resize',()=>{
@@ -505,7 +508,7 @@ const booted=(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{r
 {
   const HERO={_rv:[...$$('#row>span:not([class])'),...$('#intro').children,$('.clock')]};reveal(HERO,false);
   const N=10,ld=$('#ld'),lg=$('#lg'),pct=$('#pct'),bar=$('#bar'),done=()=>{page.classList.remove('loading');ld.remove()};
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches)booted.then(()=>{done();reveal(HERO,true)});
+  if(CALM.matches)booted.then(()=>{done();reveal(HERO,true)});
   else{
     lg.insertAdjacentHTML('afterbegin',COLORS.slice(0,N).map((c,i)=>`<i style="background:${c};z-index:${N-i}"></i>`).join(''));   /* the box's own colour ends on top */
     const cards=$$('i',lg),pars=$$('.par',lg),out=t=>1-(1-t)**3;
