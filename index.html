@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Geist+Mono:wght@400&family=Inter:opsz,wght@14..32,500&display=swap" rel="stylesheet">
 <style>
 /* Dark, desktop-first single page. 12-col grid · margin 64 · gutter 16. Heading: Inter Display 500 · Body: Geist 400 */
-:root{color-scheme:dark;--bg:#0e0e10;--card:#1c1c1d;--pink:#8652ff;--tx:#e8e8ea;--dim:rgba(255,255,255,.8);
+:root{color-scheme:dark;--bg:#0e0e10;--card:#1c1c1d;--pink:#8652ff;--pink2:#6b3fe0;--tx:#e8e8ea;--dim:rgba(255,255,255,.8);
   --fill:1.34s cubic-bezier(.45,.05,.2,1);
   --hd:"Inter Display","Inter",system-ui,sans-serif;--bd:"Geist",system-ui,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
@@ -33,19 +33,20 @@ svg{display:block}
 .clock{position:fixed;z-index:60;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:24px;height:56px;
   padding:0 12px 0 20px;border-radius:72px;background:#18181a}
 .t{font-size:14px;color:var(--dim);white-space:nowrap}
-.btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap}
+.btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap;transition:background-color .35s ease}
+.btn:hover,.btn:focus-visible{background:var(--pink2)}   /* + its label scrambles (see script) */
 
-/* ── liquid hover (button, social icons, tool icons): a wave edge rises from below, its crests travel while it rises,
+/* ── liquid hover (social icons, tool icons): a wave edge rises from below, its crests travel while it rises,
       and the same motion plays backwards when the cursor leaves. GPU-only: translate + transform ── */
-.btn,.soc a,.tool{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
-.btn::after,.soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
+.soc a,.tool{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
+.soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0/33.3333% 14px,linear-gradient(#fff,#fff) 0 12px/100% calc(100% - 12px) no-repeat;
   translate:0 0;transition:translate var(--fill) .08s;animation:wv 1.5s linear infinite}
-.btn:hover::after,.btn:active::after,.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
-.btn:hover,.btn:active,.soc a:hover,.soc a:active,.tip:hover .tool{color:var(--bg)}
+.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
+.soc a:hover,.soc a:active,.tip:hover .tool{color:var(--bg)}
 @keyframes wv{to{transform:translateX(-33.3333%)}}
 
-/* footer text links scramble on hover (see script); the width is held so nothing shifts */
+/* text links and the button scramble on hover (see script); the width is held so nothing shifts */
 .links a{width:max-content;white-space:nowrap}
 
 /* ── content ── */
@@ -73,7 +74,7 @@ svg{display:block}
 .row .par{color:var(--tx)}
 .box{position:relative;width:var(--bw);height:var(--bh);border-radius:16px;overflow:hidden;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 .row:hover .box{transform:scale(1.05)}
-.box i{position:absolute;inset:0}
+.box i{position:absolute;inset:0;border-radius:inherit}
 
 /* ── loader: the works orbit while the count runs, stack into the hero box, the parentheses close round it and it lands ── */
 .ld{position:fixed;inset:0;z-index:65;pointer-events:none}
@@ -135,8 +136,9 @@ svg{display:block}
   .foot .big{font-size:min(13.5vw,calc((100vw - 216px)/5))}
   .ar{width:96px;height:96px}
   /* touch sizes: no hover effects on the button, icons and text links */
-  .btn::after,.soc a::after,.tool::after{display:none}
-  .btn:hover,.btn:active,.soc a:hover,.soc a:active,.tip:hover .tool{color:#fff}
+  .soc a::after,.tool::after{display:none}
+  .soc a:hover,.soc a:active,.tip:hover .tool{color:#fff}
+  .btn:hover{background:var(--pink)}
   .tip>i,.ar .a2{display:none}
   .arrow:hover .a1,.arrow:focus-visible .a1{transform:none}
 }
@@ -175,7 +177,7 @@ svg{display:block}
     <section class="pin" id="pin">
       <div class="intro" id="intro">
         <img src="data:image/webp;base64,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" width="64" height="64" alt="Muammar Faiq">
-        <p class="hi">Hi, Iam Muamar Faiq !</p>
+        <p class="hi">Hi, I am Muamar Faiq !</p>
         <h1 class="hl">2D Motion Designer specializing in After Effects and Rive. I create clean, smooth, and lightweight animations that bring apps, interfaces, and digital products to life.</h1>
         <div class="tools"><span class="tip" tabindex="0" aria-label="Rive App"><span class="tool"><svg width="27" height="28" aria-hidden="true"><use href="#i-r"/></svg></span><i>Rive App</i></span><span class="tip" tabindex="0" aria-label="Adobe After Effects"><span class="tool"><svg width="17" height="19" aria-hidden="true"><use href="#i-a"/></svg><svg width="13" height="15" class="e" aria-hidden="true"><use href="#i-e"/></svg></span><i>Adobe After Effects</i></span></div>
       </div>
@@ -202,6 +204,7 @@ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelecto
 const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>t<.5?4*t*t*t:1-(2-2*t)**3/2;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t)};
+const RAMP=' .:-=+*#%@',NOISE='!<>-_/[]{}=+*^?#01';   /* ASCII glyphs: brightness ramp + scramble set */
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -243,7 +246,7 @@ function reveal(root,on){
   });
 }
 
-/* sneak-peek box: the works slide through it, the next one pushing the current one out to the left */
+/* sneak-peek box: the current work narrows away to the left and the next one follows it in, just behind its edge */
 {
   const box=$('#box');let ci=0;box.innerHTML=`<i style="background:${COLORS[0]}"></i>`;
   setInterval(()=>{
@@ -252,13 +255,13 @@ function reveal(root,on){
     const old=box.lastElementChild,n=document.createElement('i');
     n.style.background=COLORS[ci];box.append(n);
     const o={duration:1100,easing:'cubic-bezier(.76,0,.24,1)'};
-    old.animate([{transform:'none'},{transform:'translateX(-100%)'}],{...o,fill:'forwards'}).onfinish=()=>old.remove();
-    n.animate([{transform:'translateX(100%)'},{transform:'none'}],o);
+    old.animate([{clipPath:'inset(0 0 0 0 round 16px)'},{clipPath:'inset(0 100% 0 0 round 16px)'}],{...o,fill:'forwards'}).onfinish=()=>old.remove();
+    n.animate([{transform:'translateX(calc(100% + 8px))'},{transform:'none'}],o);
   },2300);
 }
 
 /* liquid hover: wave crests run forwards while filling and backwards while draining (compositor-only) */
-for(const el of $$('.btn,.soc a,.tip')){
+for(const el of $$('.soc a,.tip')){
   let a=null;
   const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName==='wv');
   const on=()=>{const x=anim();if(!x)return;x.playbackRate=1;x.play()};
@@ -267,11 +270,11 @@ for(const el of $$('.btn,.soc a,.tip')){
   el.addEventListener('focus',on);el.addEventListener('blur',off);
 }
 
-/* footer text links: letters scramble into random glyphs and resolve back, left to right */
+/* text links and the button: letters scramble through ASCII glyphs and resolve back to text, left to right */
 {
-  const GL='abcdefghijklmnopqrstuvwxyz!<>-_/[]{}=+*^?#';
+  const GL=RAMP.slice(1)+NOISE;
   const touch=matchMedia('(max-width:1024px)');   /* off on tablet & mobile */
-  for(const el of $$('.links a')){
+  for(const el of $$('.links a,.btn')){
     const txt=el.textContent;let raf=0;
     const run=()=>{
       if(touch.matches)return;
@@ -288,48 +291,49 @@ for(const el of $$('.btn,.soc a,.tip')){
   }
 }
 
-/* ── ASCII lens: wherever the cursor (or a finger) passes, the design underneath turns into ASCII. Each frame the page is
-      redrawn into a snapshot with one pixel per character cell (text, shapes, icons and the photo at their live positions,
-      so it follows scrolling and animation); a cell's brightness picks the glyph and its colour tints it. The lens leaves
-      a short trail and its rim scrambles. ── */
-const RAMP=' .:-=+*#%@',NOISE='!<>-_/[]{}=+*^?#01';
+/* ── ASCII lens: wherever the cursor (or a finger) passes, the design underneath turns into ASCII in its own colours.
+      Each frame the page is redrawn twice into snapshots with one pixel per character cell (text, shapes, icons and the
+      photo at their live positions, so it follows scrolling and animation): once in colour and once as plain coverage.
+      Coverage picks the glyph, and colour ÷ coverage gives back the object's original colour for it. The lens is a liquid
+      blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Buttons and links
+      are left as they are. ── */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
-  cw:8,ch:13,R:110,p:null,q:null,on:false,
+  cw:8,ch:13,R:105,tail:26,p:null,on:false,trail:[],
   init(){
     this.cv=$('#ascii');this.cx=this.cv.getContext('2d');
     this.sc=document.createElement('canvas');this.sx=this.sc.getContext('2d',{willReadFrequently:true});
+    this.keep=$$('.btn,.links a,.soc a,.arrow,.tool');   /* buttons and links stay themselves inside the lens */
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
     const at=(x,y)=>{if(!page.classList.contains('loading'))this.p={x,y}},off=()=>{this.p=null};
     addEventListener('pointermove',e=>at(e.clientX,e.clientY),{passive:true});
     document.documentElement.addEventListener('pointerleave',off);
-    addEventListener('touchstart',e=>{const t=e.touches[0];this.q=null;at(t.clientX,t.clientY)},{passive:true});
+    addEventListener('touchstart',e=>{const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY)},{passive:true});
     addEventListener('touchmove',e=>{const t=e.touches[0];at(t.clientX,t.clientY)},{passive:true});
     addEventListener('touchend',off,{passive:true});
   },
   size(){
     const d=this.dpr=Math.min(2,devicePixelRatio||1),cols=Math.ceil(innerWidth/this.cw),rows=Math.ceil(innerHeight/this.ch);
-    Object.assign(this,{cols,rows,a:new Float32Array(cols*rows)});
-    this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows;
+    Object.assign(this,{cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows)});
+    this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* colour on top, coverage below */
   },
-  /* the lens: a solid core with a soft rim; while the pointer rests it stays, once it moves on the cells fade (trail) */
-  stamp(x,y){
-    const {cw,ch,R,cols,rows,a}=this;
+  stamp(x,y,R,k){   /* soft disc into the target field */
+    const {cw,ch,cols,rows,t}=this;
     for(let j=Math.max(0,Math.floor((y-R)/ch));j<=Math.min(rows-1,Math.floor((y+R)/ch));j++)
       for(let i=Math.max(0,Math.floor((x-R)/cw));i<=Math.min(cols-1,Math.floor((x+R)/cw));i++){
-        const v=1-smooth(R*.62,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y)),k=j*cols+i;if(v>a[k])a[k]=v;
+        const v=k*(1-smooth(R*.45,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v;
       }
-    this.on=true;
   },
-  /* redraw the visible design inside the lens box into the snapshot, in paint order (DOM order matches the stacking) */
-  paint(el,s,box,clip){
+  /* redraw the visible design inside the lens box, in paint order (DOM order matches the stacking); mono = coverage only */
+  paint(el,s,box,clip,mono){
+    const ink=c=>mono?'#fff':c;
     if(el.nodeType===3){
       if(!el.data.trim())return;
       const pe=el.parentElement,cs=getComputedStyle(pe),r=pe.getBoundingClientRect(),k=r.height/(pe.offsetHeight||r.height||1);   /* live scale (the title grows) */
       if(!hit(r,box))return;
       s.font=`${cs.fontWeight} ${parseFloat(cs.fontSize)*k}px ${cs.fontFamily}`;s.letterSpacing=(parseFloat(cs.letterSpacing)||0)*k+'px';
-      s.fillStyle=cs.color;
+      s.fillStyle=ink(cs.color);
       const g=document.createRange();
       for(const m of el.data.matchAll(/\S+/g)){g.setStart(el,m.index);g.setEnd(el,m.index+m[0].length);const w=g.getBoundingClientRect();if(hit(w,box))s.fillText(m[0],w.left,w.top+w.height/2)}
       return;
@@ -339,46 +343,62 @@ const Ascii={
     if(el===O.fp)r.y+=O.fcut;   /* the footer is uncovered from the bottom up */
     s.save();
     if(clip&&(cs.overflow==='hidden'||el===O.fp)){if(!hit(r,box)){s.restore();return}s.beginPath();s.rect(r.left,r.top,r.width,r.height);s.clip()}
-    if(el.tagName==='IMG'){s.beginPath();s.ellipse(r.left+r.width/2,r.top+r.height/2,r.width/2,r.height/2,0,0,7);s.clip();s.drawImage(el,r.left,r.top,r.width,r.height)}
+    if(el.tagName==='IMG'){s.beginPath();s.ellipse(r.left+r.width/2,r.top+r.height/2,r.width/2,r.height/2,0,0,7);if(mono){s.fillStyle='#fff';s.fill()}else{s.clip();s.drawImage(el,r.left,r.top,r.width,r.height)}}
     else if(el.tagName==='svg'){
       const u=el.querySelector('use'),S=u&&this.sym[u.getAttribute('href').slice(1)];
-      if(S&&hit(r,box)){s.translate(r.left,r.top);s.scale(r.width/S.vb.width,r.height/S.vb.height);s.fillStyle=cs.color;for(const d of S.d)s.fill(d)}
+      if(S&&hit(r,box)){s.translate(r.left,r.top);s.scale(r.width/S.vb.width,r.height/S.vb.height);s.fillStyle=ink(cs.color);for(const d of S.d)s.fill(d)}
     }else{
       const bg=cs.backgroundColor;
       if(!bg.endsWith(', 0)')&&bg!=='transparent'&&hit(r,box)){
-        s.fillStyle=bg;s.beginPath();s.roundRect(r.left,r.top,r.width,r.height,Math.min(parseFloat(cs.borderTopLeftRadius)||0,r.height/2,r.width/2));s.fill();
+        s.fillStyle=ink(bg);s.beginPath();s.roundRect(r.left,r.top,r.width,r.height,Math.min(parseFloat(cs.borderTopLeftRadius)||0,r.height/2,r.width/2));s.fill();
       }
-      for(const c of el.childNodes)this.paint(c,s,box,true);
+      for(const c of el.childNodes)this.paint(c,s,box,true,mono);
     }
     s.restore();
   },
   frame(){
-    const {a,cols,rows,cw,ch}=this;
-    if(this.p){   /* sweep from the last stamp to the pointer so fast moves leave no gaps */
-      const q=this.q||this.p,n=Math.max(1,Math.ceil(Math.hypot(this.p.x-q.x,this.p.y-q.y)/(this.R/3)));
-      for(let i=1;i<=n;i++)this.stamp(lerp(q.x,this.p.x,i/n),lerp(q.y,this.p.y,i/n));
-      this.q=this.p;
-    }else this.q=null;
-    if(!this.on)return;
+    const {a,t,cols,rows,cw,ch,trail}=this;
+    /* the blob: the head at full size, the tail made of the recent positions, each smaller and fainter with age */
+    if(this.p){const l=trail[0];if(!l||Math.hypot(l.x-this.p.x,l.y-this.p.y)>1||trail.length<this.tail)trail.unshift({...this.p})}
+    if(trail.length>this.tail||!this.p&&trail.length)trail.pop();
+    if(!trail.length&&!this.on)return;
+    t.fill(0);
+    for(let k=trail.length-1;k>=0;k--){
+      const q=trail[k],f=1-k/this.tail,n=k?Math.max(1,Math.ceil(Math.hypot(trail[k-1].x-q.x,trail[k-1].y-q.y)/12)):1;
+      for(let m=0;m<n;m++){const p=k?{x:lerp(q.x,trail[k-1].x,m/n),y:lerp(q.y,trail[k-1].y,m/n)}:q;this.stamp(p.x,p.y,this.R*(.25+.75*f**.8),f**.6)}
+    }
     let i0=cols,i1=-1,j0=rows,j1=-1;
-    for(let j=0,k=0;j<rows;j++)for(let i=0;i<cols;i++,k++){if(a[k]<.02){a[k]=0;continue}a[k]*=.9;if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
+    for(let j=0,k=0;j<rows;j++)for(let i=0;i<cols;i++,k++){
+      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?.22:.08);   /* ease in, ease out */
+      a[k]=v<.01?0:v;if(a[k]){if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
+    }
     const c=this.cx,d=this.dpr;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.cv.width,this.cv.height);
-    if(i1<0){this.on=false;return}   /* all faded: sleep */
+    this.on=i1>=0;if(!this.on)return;   /* all faded: sleep */
     const box={left:i0*cw,top:j0*ch,right:(i1+1)*cw,bottom:(j1+1)*ch},s=this.sx,w=i1-i0+1,h=j1-j0+1;
-    s.setTransform(1,0,0,1,0,0);s.fillStyle='#0e0e10';s.fillRect(i0,j0,w,h);
-    s.setTransform(1/cw,0,0,1/ch,0,0);s.textBaseline='middle';this.paint($('#pin'),s,box,false);this.paint($('.clock'),s,box,false);
-    const px=s.getImageData(i0,j0,w,h).data;
+    for(const mono of [0,1]){
+      s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(i0,j0+mono*rows,w,h);
+      s.setTransform(1/cw,0,0,1/ch,0,mono*rows);s.textBaseline='middle';
+      this.paint($('#pin'),s,box,false,mono);this.paint($('.clock'),s,box,false,mono);
+    }
+    const px=s.getImageData(i0,j0,w,h).data,cv=s.getImageData(i0,j0+rows,w,h).data;
     c.setTransform(d,0,0,d,0,0);c.font=`${ch*.9}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
+    const N=RAMP.length-1;
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
-      const o=((j-j0)*w+i-i0)*4,R=px[o],G=px[o+1],B=px[o+2],L=(.3*R+.59*G+.11*B)/255;
-      const m=smooth(.3,.42,v),rim=v<.42;   /* crisp lens: inside, the cell hides the real design; on the rim, loose glyphs only */
-      if(m){c.globalAlpha=m;c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch)}
-      if(L<.09||rim&&Math.random()>v*1.6)continue;
-      const g=rim||v<.6&&Math.random()<.3?NOISE[(Math.random()*NOISE.length)|0]:RAMP[Math.min(RAMP.length-1,1+((L*(RAMP.length-1))|0))];
-      c.globalAlpha=rim?v*2:1;c.fillStyle=`rgb(${R},${G},${B})`;c.fillText(g,i*cw+.5,j*ch+1);
+      const o=((j-j0)*w+i-i0)*4,A=cv[o]/255;
+      c.globalAlpha=smooth(.05,.45,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
+      if(A<.06)continue;
+      const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
+      const L=(.3*R+.59*G+.11*B)/255,rim=v<.5&&Math.random()<.3*(1-v);
+      const g=rim?NOISE[(Math.random()*NOISE.length)|0]:RAMP[clamp(Math.round((.65*A+.35*L)*N),1,N)];
+      c.globalAlpha=smooth(.08,.5,v);c.fillStyle=`rgb(${R},${G},${B})`;c.fillText(g,i*cw+.5,j*ch+1);
     }
     c.globalAlpha=1;
+    for(const el of this.keep){
+      const r=el.getBoundingClientRect();if(!hit(r,box)||!el.checkVisibility({opacityProperty:true,visibilityProperty:true}))continue;
+      c.save();c.beginPath();c.roundRect(r.left,r.top,r.width,r.height,Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius)||0,r.height/2,r.width/2));c.clip();
+      c.clearRect(r.left,r.top,r.width,r.height);c.restore();
+    }
   }
 };
 
