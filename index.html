@@ -312,16 +312,14 @@ const Ascii={
     addEventListener('touchend',off,{passive:true});
   },
   size(){
-    const d=this.dpr=Math.min(2,devicePixelRatio||1),cols=Math.ceil(innerWidth/this.cw),rows=Math.ceil(innerHeight/this.ch);
-    Object.assign(this,{cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows)});
-    this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* colour on top, coverage below */
+    const d=this.dpr=Math.min(2,devicePixelRatio||1),{cw,ch}=this,cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
+    Object.assign(this,{cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows),bb:null,u:null,drawn:null,snap:null});
+    this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* snapshots: colour on top, coverage below */
   },
-  stamp(x,y,R,k){   /* soft disc into the target field */
-    const {cw,ch,cols,rows,t}=this;
-    for(let j=Math.max(0,Math.floor((y-R)/ch));j<=Math.min(rows-1,Math.floor((y+R)/ch));j++)
-      for(let i=Math.max(0,Math.floor((x-R)/cw));i<=Math.min(cols-1,Math.floor((x+R)/cw));i++){
-        const v=k*(1-smooth(R*.45,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v;
-      }
+  stamp(x,y,R,k){   /* soft disc into the target field; grows the work area */
+    const {cw,ch,cols,rows,t}=this,i0=Math.max(0,Math.floor((x-R)/cw)),i1=Math.min(cols-1,Math.floor((x+R)/cw)),j0=Math.max(0,Math.floor((y-R)/ch)),j1=Math.min(rows-1,Math.floor((y+R)/ch)),u=this.u;
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=k*(1-smooth(R*.45,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v}
+    if(i0<u[0])u[0]=i0;if(j0<u[1])u[1]=j0;if(i1>u[2])u[2]=i1;if(j1>u[3])u[3]=j1;
   },
   /* redraw the visible design inside the lens box, in paint order (DOM order matches the stacking); mono = coverage only */
   paint(el,s,box,clip,mono){
@@ -355,28 +353,30 @@ const Ascii={
     s.restore();
   },
   frame(){
-    const {a,t,cols,rows,cw,ch,trail}=this;
+    const {a,t,cols,cw,ch,trail}=this,now=performance.now();
     /* the blob: the head at full size, the tail made of the recent positions, each smaller and fainter with age.
        It only lives while the pointer moves: once it rests, the tail retracts into the head and the whole lens fades */
-    const moving=this.p&&performance.now()-this.mt<90;
+    const moving=this.p&&now-this.mt<90;
     if(moving)trail.unshift({...this.p});
     if(trail.length>this.tail||!moving&&trail.length)trail.pop();
     if(!trail.length&&!this.on)return;
-    t.fill(0);
+    const u=this.u=this.bb?[...this.bb]:[cols,this.rows,-1,-1];   /* work area: what was lit ∪ what is stamped now */
     for(let k=trail.length-1;k>=0;k--){
-      const q=trail[k],f=1-k/this.tail,n=k?Math.max(1,Math.ceil(Math.hypot(trail[k-1].x-q.x,trail[k-1].y-q.y)/12)):1;
-      for(let m=0;m<n;m++){const p=k?{x:lerp(q.x,trail[k-1].x,m/n),y:lerp(q.y,trail[k-1].y,m/n)}:q;this.stamp(p.x,p.y,this.R*(.25+.75*f**.8),f**.6)}
+      const q=trail[k],f=1-k/this.tail,r=this.R*(.25+.75*f**.8),n=k?Math.max(1,Math.ceil(Math.hypot(trail[k-1].x-q.x,trail[k-1].y-q.y)/16)):1;
+      for(let m=0;m<n;m++)this.stamp(k?lerp(q.x,trail[k-1].x,m/n):q.x,k?lerp(q.y,trail[k-1].y,m/n):q.y,r,f**.6);
     }
-    let i0=cols,i1=-1,j0=rows,j1=-1;
-    for(let j=0,k=0;j<rows;j++)for(let i=0;i<cols;i++,k++){
-      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?.22:.12);   /* ease in, ease out */
+    let i0=cols,j0=this.rows,i1=-1,j1=-1;
+    for(let j=u[1];j<=u[3];j++)for(let i=u[0],k=j*cols+i;i<=u[2];i++,k++){
+      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?.55:.12);t[k]=0;   /* quick in (no lag behind the cursor), soft out */
       a[k]=v<.01?0:v;if(a[k]){if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
     }
-    const c=this.cx,d=this.dpr;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.cv.width,this.cv.height);
-    this.on=i1>=0;if(!this.on){this.snap=null;return}   /* all faded: sleep */
+    const c=this.cx,d=this.dpr,o0=this.drawn;c.setTransform(1,0,0,1,0,0);
+    if(o0)c.clearRect(o0[0]*d,o0[1]*d,o0[2]*d,o0[3]*d);
+    this.on=i1>=0;if(!this.on){this.bb=this.drawn=this.snap=null;return}   /* all faded: sleep */
+    this.bb=[i0,j0,i1,j1];
     let S=this.snap;const st=page.scrollTop;
     if(!S||st!==S.st||++S.n>2||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
-      const x0=Math.max(0,i0-8),y0=Math.max(0,j0-5),w=Math.min(cols,i1+9)-x0,h=Math.min(rows,j1+6)-y0,s=this.sx;
+      const x0=Math.max(0,i0-12),y0=Math.max(0,j0-8),w=Math.min(cols,i1+13)-x0,h=Math.min(this.rows,j1+9)-y0,s=this.sx,rows=this.rows;
       const box={left:x0*cw,top:y0*ch,right:(x0+w)*cw,bottom:(y0+h)*ch};
       for(const mono of [0,1]){
         s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(x0,y0+mono*rows,w,h);
@@ -385,23 +385,21 @@ const Ascii={
       }
       S=this.snap={i0:x0,j0:y0,w,h,st,n:0,box,px:s.getImageData(x0,y0,w,h).data,cv:s.getImageData(x0,y0+rows,w,h).data};
     }
-    const {px,cv,box}=S,w=S.w;
-    c.setTransform(d,0,0,d,0,0);c.font=`${ch*.95}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
-    const tk=performance.now()/140;
+    const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${ch*.95}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
+    const tk=now/140;
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
-      const o=((j-S.j0)*w+i-S.i0)*4,A=cv[o]/255;
+      const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
       c.globalAlpha=smooth(.05,.45,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06)continue;
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
       const L=(.3*R+.59*G+.11*B)/255,rim=v<.5&&Math.random()<.3*(1-v);
-      const set=SETS[clamp(Math.round((.65*A+.35*L)*6)-1,0,5)],h=mix(i,j,tk+mix(i,j,0)%8/8|0);   /* a different glyph per cell, each changing now and then */
-      const g=rim?NOISE[(Math.random()*NOISE.length)|0]:set[h%set.length];
-      c.globalAlpha=smooth(.08,.5,v);c.fillStyle=`rgb(${R},${G},${B})`;c.fillText(g,i*cw+.5,j*ch+1);
+      const set=SETS[clamp(Math.round((.65*A+.35*L)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
+      c.globalAlpha=smooth(.08,.5,v);c.fillStyle=`rgb(${R},${G},${B})`;c.fillText(gl,i*cw+.5,j*ch+1);
     }
-    c.globalAlpha=1;
+    c.globalAlpha=1;this.drawn=[i0*cw,j0*ch,(i1-i0+1)*cw,(j1-j0+1)*ch];
     for(const el of this.keep){
-      const r=el.getBoundingClientRect();if(!hit(r,box)||!el.checkVisibility({opacityProperty:true,visibilityProperty:true}))continue;
+      const r=el.getBoundingClientRect();if(!hit(r,S.box)||!el.checkVisibility({opacityProperty:true,visibilityProperty:true}))continue;
       c.save();c.beginPath();c.roundRect(r.left,r.top,r.width,r.height,Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius)||0,r.height/2,r.width/2));c.clip();
       c.clearRect(r.left,r.top,r.width,r.height);c.restore();
     }
@@ -491,8 +489,12 @@ const O={
 };
 
 /* ── boot ── */
-function loop(){
-  O.tick();Ascii.frame();
+/* adaptive quality: if frames keep running late while the lens is on, it switches to coarser cells (≈45% fewer glyphs) */
+let lastT=0,late=0;
+function loop(now){
+  Ascii.frame();O.tick();   /* the lens reads the layout before the story writes styles: no forced layout mid-frame */
+  const dt=now-lastT;lastT=now;
+  if(Ascii.on&&dt<250){late=late*.95+(dt>22)*.05;if(late>.4&&Ascii.cw<8){Object.assign(Ascii,{cw:8,ch:13});Ascii.size()}}
   requestAnimationFrame(loop);
 }
 Ascii.init();O.init();
