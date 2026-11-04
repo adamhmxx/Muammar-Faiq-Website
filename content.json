@@ -1,0 +1,95 @@
+{
+ "name": "Muammar Faiq",
+ "hi": "Hi, I am Muammar Faiq !",
+ "headline": "2D Motion Designer specializing in After Effects and Rive. I create clean, smooth, and lightweight animations that bring apps, interfaces, and digital products to life.",
+ "email": "hello@muammarfaiq.com",
+ "copy": "© 2026 Muammar Faiq. All rights reserved.",
+ "socials": {
+  "i-li": "#",
+  "i-ig": "#",
+  "i-x": "#",
+  "i-up": "#"
+ },
+ "works": [
+  {
+   "title": "Project 01",
+   "year": "2025",
+   "color": "#3D5AFE",
+   "video": "assets/work-1.mp4",
+   "hero": "assets/hero-1.mp4",
+   "poster": "assets/poster-1.webp"
+  },
+  {
+   "title": "Project 02",
+   "year": "2025",
+   "color": "#FF6B35",
+   "video": "assets/work-2.mp4",
+   "hero": "assets/hero-2.mp4",
+   "poster": "assets/poster-2.webp"
+  },
+  {
+   "title": "Project 03",
+   "year": "2025",
+   "color": "#00C2A8",
+   "video": "assets/work-3.mp4",
+   "hero": "assets/hero-3.mp4",
+   "poster": "assets/poster-3.webp"
+  },
+  {
+   "title": "Project 04",
+   "year": "2024",
+   "color": "#FFD23F",
+   "video": "assets/work-4.mp4",
+   "hero": "assets/hero-4.mp4",
+   "poster": "assets/poster-4.webp"
+  },
+  {
+   "title": "Project 05",
+   "year": "2024",
+   "color": "#7C4DFF",
+   "video": "assets/work-5.mp4",
+   "hero": "assets/hero-5.mp4",
+   "poster": "assets/poster-5.webp"
+  },
+  {
+   "title": "Project 06",
+   "year": "2024",
+   "color": "#FF4081",
+   "video": "assets/work-6.mp4",
+   "hero": "assets/hero-6.mp4",
+   "poster": "assets/poster-6.webp"
+  },
+  {
+   "title": "Project 07",
+   "year": "2023",
+   "color": "#40C4FF",
+   "video": "assets/work-7.mp4",
+   "hero": "assets/hero-7.mp4",
+   "poster": "assets/poster-7.webp"
+  },
+  {
+   "title": "Project 08",
+   "year": "2023",
+   "color": "#B2FF59",
+   "video": "assets/work-8.mp4",
+   "hero": "assets/hero-8.mp4",
+   "poster": "assets/poster-8.webp"
+  },
+  {
+   "title": "Project 09",
+   "year": "2023",
+   "color": "#E21EFF",
+   "video": "assets/work-9.mp4",
+   "hero": "assets/hero-9.mp4",
+   "poster": "assets/poster-9.webp"
+  },
+  {
+   "title": "Project 10",
+   "year": "2022",
+   "color": "#FF9100",
+   "video": "assets/work-10.mp4",
+   "hero": "assets/hero-10.mp4",
+   "poster": "assets/poster-10.webp"
+  }
+ ]
+}

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Portfolio Admin</title>
+<style>
+:root{--bg:#0e0e10;--panel:#17171a;--line:#2a2a2f;--tx:#f2f2f4;--mut:#9a9aa3;--acc:#8652ff;--ok:#3ddc97;--bad:#ff5d6c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:24px 16px 120px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 14px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-weight:600}
+p.sub{color:var(--mut);margin:0 0 24px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+label{display:block;margin-bottom:12px;font-size:13px;color:var(--mut)}
+label>span{display:block;margin-bottom:5px}
+input[type=text],input[type=url],input[type=email],input[type=password],input[type=number],textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+textarea{min-height:92px;resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input[type=color]{width:44px;height:38px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:620px){.row{grid-template-columns:1fr}}
+button{font:inherit;color:var(--tx);background:#232328;border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer}
+button:hover:not(:disabled){background:#2c2c33}button:disabled{opacity:.45;cursor:not-allowed}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}button.pri:hover:not(:disabled){background:#9a70ff}
+button.del{color:var(--bad)}
+.work{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--bg);display:grid;grid-template-columns:120px 1fr;gap:14px}
+@media(max-width:620px){.work{grid-template-columns:1fr}}
+.thumb{width:120px;aspect-ratio:4/3;border-radius:10px;background:#222 center/cover;overflow:hidden}
+.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.work .row3{display:grid;grid-template-columns:1fr 90px 52px;gap:10px;align-items:end}
+.files{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+@media(max-width:620px){.files{grid-template-columns:1fr}}
+.files label{margin:0}.files small{display:block;color:var(--mut);word-break:break-all;font-size:11px;margin-top:3px}
+input[type=file]{width:100%;font-size:12px;color:var(--mut)}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(14,14,16,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:center;z-index:5}
+.bar .in{max-width:860px;width:100%;display:flex;gap:12px;align-items:center}
+#msg{flex:1;color:var(--mut);font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#msg.ok{color:var(--ok)}#msg.bad{color:var(--bad)}
+.hint{color:var(--mut);font-size:12px;margin:-6px 0 12px}
+.hide{display:none!important}
+details{margin-top:8px;color:var(--mut);font-size:13px}summary{cursor:pointer}
+ol{padding-left:20px;margin:8px 0}
+code{background:var(--bg);padding:1px 6px;border-radius:6px}
+.chk{display:flex;gap:8px;align-items:center;margin:0 0 12px}.chk input{width:auto}
+</style>
+</head>
+<body>
+<main>
+  <h1>Portfolio Admin</h1>
+  <p class="sub">Edit the about text, social links and works. Saving commits <code>content.json</code> and uploaded files to GitHub; the site picks them up on its next load.</p>
+
+  <section id="login">
+    <h2>Connect</h2>
+    <div class="row">
+      <label><span>Repository (owner/name)</span><input id="repo" type="text" value="adamhmxx/Muammar-Faiq-Website" autocomplete="off" spellcheck="false"></label>
+      <label><span>Branch</span><input id="branch" type="text" value="main" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <label><span>GitHub access token</span><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
+    <label class="chk"><input id="remember" type="checkbox"><span>Remember on this device</span></label>
+    <button id="connect" class="pri">Load content</button>
+    <details>
+      <summary>How to get a token</summary>
+      <ol>
+        <li>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.</li>
+        <li>Repository access: only this repository.</li>
+        <li>Permissions: <code>Contents</code> → Read and write.</li>
+      </ol>
+      The token stays in this browser and is only sent to api.github.com.
+    </details>
+  </section>
+
+  <div id="editor" class="hide">
+    <section>
+      <h2>About</h2>
+      <label><span>Name</span><input data-k="name" type="text"></label>
+      <label><span>Greeting</span><input data-k="hi" type="text"></label>
+      <label><span>Headline</span><textarea data-k="headline"></textarea></label>
+      <div class="row">
+        <label><span>Email</span><input data-k="email" type="email"></label>
+        <label><span>Footer copyright line</span><input data-k="copy" type="text"></label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Social links</h2>
+      <p class="hint">Leave a link empty to hide its icon; <code>#</code> keeps the icon without a link.</p>
+      <div class="row">
+        <label><span>LinkedIn</span><input data-s="i-li" type="url" placeholder="https://"></label>
+        <label><span>Instagram</span><input data-s="i-ig" type="url" placeholder="https://"></label>
+        <label><span>X</span><input data-s="i-x" type="url" placeholder="https://"></label>
+        <label><span>Upwork</span><input data-s="i-up" type="url" placeholder="https://"></label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Works</h2>
+      <p class="hint">Videos are 4:3. Cards autoplay, so keep files light. The hero loop is a short clip (about 3 s) shown in the hero box and loader; without one the main video is used.</p>
+      <div id="works"></div>
+      <button id="add">+ Add work</button>
+    </section>
+  </div>
+</main>
+
+<div class="bar hide" id="bar"><div class="in"><span id="msg"></span><a id="view" href="./" target="_blank" rel="noopener"><button type="button">View site</button></a><button id="save" class="pri" disabled>Save to GitHub</button></div></div>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a))n==='class'?e.className=v:n.startsWith('on')?e.addEventListener(n.slice(2),v):v!=null&&e.setAttribute(n,v);e.append(...k);return e};
+const API='https://api.github.com';
+let data=null,sha=null,orig=new Set(),dirty=false,pending=new Map(),urls=new Map();   /* pending: repo path → Blob waiting to be uploaded */
+
+const say=(t,c='')=>{const m=$('#msg');m.textContent=t;m.className=c};
+const store=()=>$('#remember').checked?localStorage:sessionStorage;
+const b64=s=>btoa(unescape(encodeURIComponent(s)));
+const unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,''))));
+const blobB64=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.onerror=no;r.readAsDataURL(b)});
+const cfg=()=>({repo:$('#repo').value.trim(),br:$('#branch').value.trim()||'main',tk:$('#token').value.trim()});
+async function gh(path,opt={}){
+  const {tk}=cfg(),r=await fetch(API+path,{...opt,headers:{Accept:'application/vnd.github+json','Authorization':'Bearer '+tk,'X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})}});
+  if(!r.ok){let m=r.statusText;try{m=(await r.json()).message||m}catch{}const e=new Error(`${r.status}: ${m}`);e.status=r.status;throw e}
+  return r.status===204?null:r.json();
+}
+const enc=p=>p.split('/').map(encodeURIComponent).join('/');
+const mark=()=>{dirty=true;$('#save').disabled=false;say('Unsaved changes')};
+
+/* ── load ── */
+async function load(){
+  const {repo,br,tk}=cfg();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!tk)return say('Enter the repository and a token.','bad');
+  say('Loading…');$('#connect').disabled=true;
+  try{
+    let f;
+    try{f=await gh(`/repos/${repo}/contents/content.json?ref=${encodeURIComponent(br)}`);data=JSON.parse(unb64(f.content));sha=f.sha}
+    catch(e){if(e.status!==404)throw e;const r=await fetch('content.json');data=await r.json();sha=null}   /* first save: start from the site's own copy */
+    store().setItem('adm',JSON.stringify({repo,br,tk}));
+    (store()===localStorage?sessionStorage:localStorage).removeItem('adm');
+    orig=new Set(data.works.flatMap(w=>[w.video,w.hero,w.poster]).filter(p=>p&&p.startsWith('assets/')));
+    pending.clear();dirty=false;fill();
+    $('#login').classList.add('hide');$('#editor').classList.remove('hide');$('#bar').classList.remove('hide');$('#save').disabled=true;say('Loaded '+repo);
+  }catch(e){say(e.status===401?'The token was rejected.':e.status===404?'Repository or branch not found (check the token covers it).':e.message,'bad')}
+  $('#connect').disabled=false;
+}
+
+/* ── form ── */
+function fill(){
+  for(const i of $$('[data-k]'))i.value=data[i.dataset.k]??'';
+  for(const i of $$('[data-s]'))i.value=data.socials?.[i.dataset.s]??'';
+  renderWorks();
+}
+const path=(kind,ext)=>`assets/${kind}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}.${ext}`;
+const extOf=f=>(f.name.split('.').pop()||'').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+const src=p=>urls.get(p)||p;   /* a file just picked previews from memory (the site does not have it yet), an existing one from the site */
+
+function renderWorks(){
+  const box=$('#works');box.replaceChildren();
+  data.works.forEach((w,i)=>{
+    const th=h('div',{class:'thumb'});if(w.poster)th.style.backgroundImage=`url("${src(w.poster)}")`;
+    const set=(k,v)=>{w[k]=v;mark()};
+    const file=(label,key,acc,kind)=>{
+      const note=h('small',{},w[key]?w[key].replace(/^assets\//,''):'none');
+      return h('label',{},h('span',{},label),h('input',{type:'file',accept:acc,onchange:async e=>{
+        const f=e.target.files[0];if(!f)return;
+        let blob=f,ext=extOf(f);
+        if(key==='poster'){blob=await poster(f);ext='webp'}
+        const p=path(kind,ext);blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);w[key]=p;note.textContent=p.slice(7);
+        if(key==='poster')th.style.backgroundImage=`url("${blob.url}")`;mark();
+      }}),note)};
+    const mv=d=>()=>{const j=i+d;if(j<0||j>=data.works.length)return;[data.works[i],data.works[j]]=[data.works[j],data.works[i]];renderWorks();mark()};
+    box.append(h('div',{class:'work'},th,h('div',{},
+      h('div',{class:'row3'},
+        h('label',{},h('span',{},`Title · work ${i+1}`),h('input',{type:'text',value:w.title||'',oninput:e=>set('title',e.target.value)})),
+        h('label',{},h('span',{},'Year'),h('input',{type:'text',value:w.year||'',oninput:e=>set('year',e.target.value)})),
+        h('label',{},h('span',{},'Colour'),h('input',{type:'color',value:/^#[0-9a-f]{6}$/i.test(w.color)?w.color:'#7c4dff',oninput:e=>set('color',e.target.value)}))),
+      h('div',{class:'files'},file('Poster image','poster','image/*','poster'),file('Video (4:3)','video','video/mp4,video/webm','work'),file('Hero loop (~3 s)','hero','video/mp4,video/webm','hero')),
+      h('div',{class:'acts'},h('button',{type:'button',onclick:mv(-1),disabled:i===0?'':null,'aria-label':'Move up'},'↑'),h('button',{type:'button',onclick:mv(1),disabled:i===data.works.length-1?'':null,'aria-label':'Move down'},'↓'),
+        h('button',{type:'button',class:'del',onclick:()=>{if(data.works.length<2)return say('Keep at least one work.','bad');if(!confirm(`Delete “${w.title||'Untitled'}”? Its files are removed on save.`))return;data.works.splice(i,1);renderWorks();mark()}},'Delete')))));
+  });
+}
+/* poster → 640×480 webp, cover-cropped */
+async function poster(f){
+  const im=await createImageBitmap(f),c=document.createElement('canvas');c.width=640;c.height=480;
+  const k=Math.max(640/im.width,480/im.height),w=im.width*k,hh=im.height*k;c.getContext('2d').drawImage(im,(640-w)/2,(480-hh)/2,w,hh);
+  return new Promise(r=>c.toBlob(r,'image/webp',.72));
+}
+
+$('#add').addEventListener('click',()=>{data.works.push({title:'New project',year:String(new Date().getFullYear()),color:'#7c4dff',video:'',hero:'',poster:''});renderWorks();mark();$('#works').lastElementChild.scrollIntoView({behavior:'smooth',block:'center'})});
+$('#editor').addEventListener('input',e=>{
+  const t=e.target;if(t.dataset.k){data[t.dataset.k]=t.value;mark()}
+  else if(t.dataset.s){(data.socials||={})[t.dataset.s]=t.value.trim();mark()}
+});
+
+/* ── save: new files first, then content.json, then files no work uses any more ── */
+async function put(p,content,msg,sh){return gh(`/repos/${cfg().repo}/contents/${enc(p)}`,{method:'PUT',body:JSON.stringify({message:msg,content,branch:cfg().br,...(sh?{sha:sh}:{})})})}
+$('#save').addEventListener('click',async()=>{
+  for(const w of data.works){if(!w.title?.trim())return say('Every work needs a title.','bad');if(!w.video||!w.poster)return say(`“${w.title}” needs a video and a poster.`,'bad')}
+  for(const u of Object.values(data.socials||{}))if(u&&u!=='#'&&!/^https?:\/\//.test(u))return say('Social links must start with https://','bad');
+  if(!/^[^@\s]+@[^@\s]+$/.test(data.email||''))return say('Enter a valid email.','bad');
+  const used=new Set(data.works.flatMap(w=>[w.video,w.hero,w.poster])),gone=[...orig].filter(p=>!used.has(p)),up=[...pending].filter(([p])=>used.has(p));
+  if(gone.length&&!confirm(`These files are no longer used and will be deleted:\n\n${gone.join('\n')}`))return;
+  const btn=$('#save');btn.disabled=true;
+  try{
+    let n=0;
+    for(const[p,b]of up){say(`Uploading ${++n}/${up.length}: ${p.slice(7)}…`);await put(p,await blobB64(b),'Add '+p)}
+    say('Saving content…');
+    const res=await put('content.json',b64(JSON.stringify(data,null,1)+'\n'),'Update content',sha);sha=res.content.sha;
+    for(const p of gone){try{say('Removing '+p.slice(7)+'…');const f=await gh(`/repos/${cfg().repo}/contents/${enc(p)}?ref=${encodeURIComponent(cfg().br)}`);
+      await gh(`/repos/${cfg().repo}/contents/${enc(p)}`,{method:'DELETE',body:JSON.stringify({message:'Remove '+p,sha:f.sha,branch:cfg().br})})}catch{}}
+    orig=new Set([...used].filter(p=>p.startsWith('assets/')));pending.clear();dirty=false;
+    say('Saved. The site updates within a minute or so.','ok');
+  }catch(e){btn.disabled=false;say(e.status===409?'Someone changed content.json meanwhile: reload and redo the edit.':e.status===403||e.status===401?'The token cannot write to this repository.':e.message,'bad')}
+});
+$('#connect').addEventListener('click',load);
+$('#token').addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+try{const s=JSON.parse(localStorage.getItem('adm')||sessionStorage.getItem('adm')||'null');if(s){$('#repo').value=s.repo;$('#branch').value=s.br;$('#token').value=s.tk;$('#remember').checked=!!localStorage.getItem('adm')}}catch{}
+</script>
+</body>
+</html>
