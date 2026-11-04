@@ -240,7 +240,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={surface:'keep',lighten:.45,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.15,bgTint:'white'};
+const ASCII_DEF={surface:'keep',lighten:.7,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -630,6 +630,7 @@ const O={
 };
 
 /* ── Hover FX panel: every lens parameter, live, each with a one-line explanation. Settings are remembered in this browser ── */
+const SHOW_PANEL=false;   /* false: hidden for visitors (?fx, #fx, Alt+Shift+F or three quick clicks on the clock bring it back) */
 const MODES=['ascii'];   /* add 'pixel' here to bring the pixelated mode (and its tab) back */
 const Tg=(k,l,d)=>({t:'b',k,l,d}),Sl=(k,l,d,o)=>({t:'s',k,l,d,o}),Rg=(k,l,d,u,min,max,st)=>({t:'n',k,l,d,u,min,max,st});
 const PRESETS={
@@ -733,7 +734,7 @@ const Panel={
     btn.addEventListener('click',()=>open(!ap.classList.contains('open')));
     addEventListener('keydown',e=>{if(e.key==='Escape')open(false)});
     /* hidden for visitors; the owner brings it back with ?fx / #fx in the URL, Alt+Shift+F, or three quick clicks on the clock */
-    btn.hidden=!/[?&#]fx\b/.test(location.search+location.hash);
+    btn.hidden=!SHOW_PANEL&&!/[?&#]fx\b/.test(location.search+location.hash);
     const toggle=()=>{btn.hidden=!btn.hidden;if(btn.hidden)open(false)};
     addEventListener('keydown',e=>{if(e.altKey&&e.shiftKey&&e.code==='KeyF')toggle()});
     let taps=[];$('.tm').addEventListener('click',()=>{const n=performance.now();taps=taps.filter(t=>n-t<900);taps.push(n);if(taps.length>=3){taps=[];toggle()}});
