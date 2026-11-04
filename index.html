@@ -227,12 +227,44 @@ const page=$('#page'),TOUCH=matchMedia('(max-width:1024px)'),CALM=matchMedia('(p
 /* smooth programmatic scroll, cancelled by the user's own wheel / touch */
 let scrollRaf=0;
 function animateScroll(to,dur){
-  const from=page.scrollTop,t0=performance.now();
+  Smooth.halt();const from=page.scrollTop,t0=performance.now();
   const stop=()=>{cancelAnimationFrame(scrollRaf);page.removeEventListener('wheel',stop);page.removeEventListener('touchstart',stop)};
   stop();page.addEventListener('wheel',stop,{passive:true});page.addEventListener('touchstart',stop,{passive:true});
   const f=n=>{const u=clamp((n-t0)/dur);page.scrollTop=lerp(from,to,ease(u));if(u<1)scrollRaf=requestAnimationFrame(f);else stop()};
   scrollRaf=requestAnimationFrame(f);
 }
+/* smooth scroll: wheel and keys move a target, the page eases towards it (frame-rate independent). Touch keeps its native
+   momentum; reduced motion keeps native scrolling. Anything that scrolls by script (links, the works row) takes over cleanly. */
+const Smooth={
+  on:false,raf:0,t:0,c:0,last:0,
+  max:()=>page.scrollHeight-page.clientHeight,
+  halt(){cancelAnimationFrame(this.raf);this.on=false},
+  to(y){
+    if(CALM.matches||page.classList.contains('loading'))return;
+    cancelAnimationFrame(scrollRaf);   /* a running scripted scroll gives way to the user */
+    if(!this.on){this.c=page.scrollTop;this.on=true;this.last=performance.now();this.raf=requestAnimationFrame(n=>this.step(n))}
+    this.t=clamp(y,0,this.max());
+  },
+  step(n){
+    const dt=Math.min(n-this.last,50);this.last=n;
+    this.c+=(this.t-this.c)*(1-Math.exp(-dt/95));
+    if(Math.abs(this.t-this.c)<.4){page.scrollTop=this.t;this.on=false;return}
+    page.scrollTop=this.c;this.raf=requestAnimationFrame(n=>this.step(n));
+  },
+  init(){
+    const by=d=>this.to((this.on?this.t:page.scrollTop)+d);
+    page.addEventListener('wheel',e=>{
+      if(e.ctrlKey||CALM.matches||page.classList.contains('loading'))return;   /* pinch-zoom / reduced motion / loader: native */
+      e.preventDefault();by(e.deltaY*(e.deltaMode===1?40:e.deltaMode===2?page.clientHeight:1));
+    },{passive:false});
+    addEventListener('keydown',e=>{
+      if(e.altKey||e.ctrlKey||e.metaKey||/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.closest('[role=button]'))return;
+      const v=page.clientHeight*.9,k={ArrowDown:()=>by(110),ArrowUp:()=>by(-110),PageDown:()=>by(v),PageUp:()=>by(-v),' ':()=>by(e.shiftKey?-v:v),Home:()=>this.to(0),End:()=>this.to(this.max())}[e.key];
+      if(k){e.preventDefault();k()}
+    });
+  }
+};
+
 /* one-shot staggered reveal (not scrubbed, so scrolling back never dissolves the content) */
 function reveal(root,on){
   if(root._on===on)return;root._on=on;
@@ -330,11 +362,12 @@ const Ascii={
       if(!hit(r,box))return;
       s.font=`${cs.fontWeight} ${parseFloat(cs.fontSize)*k}px ${cs.fontFamily}`;s.letterSpacing=(parseFloat(cs.letterSpacing)||0)*k+'px';
       s.fillStyle=ink(cs.color);
+      if(!mono&&pe.matches('.tp')){const gr=s.createLinearGradient(0,r.top,0,r.bottom);gr.addColorStop(0,'#fff');gr.addColorStop(1,'rgba(255,255,255,.2)');s.fillStyle=gr}   /* the title's own 100% → 20% fade */
       const g=document.createRange();
       for(const m of el.data.matchAll(/\S+/g)){g.setStart(el,m.index);g.setEnd(el,m.index+m[0].length);const w=g.getBoundingClientRect();if(hit(w,box))s.fillText(m[0],w.left,w.top+w.height/2)}
       return;
     }
-    if(el.nodeType!==1||el.matches('.fx,.tip>i,script')||!el.checkVisibility({opacityProperty:true,visibilityProperty:true}))return;
+    if(el.nodeType!==1||el.matches('.fx,.tip>i,script')||!el.checkVisibility({opacityProperty:!el.matches('.tp'),visibilityProperty:true}))return;   /* the title's plain copy fades out while its blurred copy fades in: the lens always reads the plain one */
     const cs=getComputedStyle(el),r=el.getBoundingClientRect();
     if(el===O.fp)r.y+=O.fcut;   /* the footer is uncovered from the bottom up */
     s.save();
@@ -497,7 +530,7 @@ function loop(now){
   if(Ascii.on&&dt<250){late=late*.95+(dt>22)*.05;if(late>.4&&Ascii.cw<8){Object.assign(Ascii,{cw:8,ch:13});Ascii.size()}}
   requestAnimationFrame(loop);
 }
-Ascii.init();O.init();
+Ascii.init();O.init();Smooth.init();
 document.addEventListener('click',e=>{if(e.target.closest('a[href="#"]'))e.preventDefault()});
 for(const a of $$('[data-to]'))a.addEventListener('click',()=>animateScroll(+a.dataset.to*O.vh,1800));   /* Home / About: top · Works: the works */
 {
