@@ -70,9 +70,9 @@ svg{display:block}
 .row{position:absolute;z-index:26;left:0;right:0;top:68.9%;height:var(--bh);display:flex;align-items:center;justify-content:center;gap:16px;
   font-size:48px;letter-spacing:-.02em;cursor:pointer}
 .row .par{color:var(--tx)}
-.box{position:relative;width:var(--bw);height:var(--bh);border-radius:16px;overflow:hidden;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.box{position:relative;width:var(--bw);height:var(--bh);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 .row:hover .box{transform:scale(1.05)}
-.box i{position:absolute;inset:0;border-radius:inherit}
+.box i{position:absolute;inset:0;border-radius:16px}
 
 /* ── loader: the works orbit while the count runs, stack into the hero box, the parentheses close round it and it lands ── */
 .ld{position:fixed;inset:0;z-index:65;pointer-events:none}
@@ -177,7 +177,7 @@ svg{display:block}
   .tool svg{transform:none}
   .row,.ld{--bw:120px;--bh:68px}
   .row{top:auto;bottom:9%;gap:8px;font-size:22px}
-  .box,.lg i{border-radius:12px}
+  .box i,.lg i{border-radius:12px}
   .pct{font-size:28px}
   .title{font-size:14.5vw}
   .meta{margin-top:10px;font-size:13px}
@@ -308,19 +308,28 @@ function reveal(root,on){
   });
 }
 
-/* sneak-peek box: a wipe from right to left. The current work closes towards the left while the next one opens from the right,
-   at the same time, on the same curve: the next one's left edge is always exactly the current one's right edge, so there is no gap, no overlap and nothing pops */
+/* sneak-peek box: the current work narrows from right to left while the next one widens from right to left beside it.
+   Both stay rounded cards; their widths always add up to the box (minus a small gap that opens and closes smoothly), so the row
+   never jumps at the start or the end */
 {
-  const box=$('#box');let ci=0;box.innerHTML=`<i style="background:${COLORS[0]}"></i>`;
+  const box=$('#box');let ci=0,busy=false;box.innerHTML=`<i style="background:${COLORS[0]}"></i>`;
+  const DUR=850,GAP=10;
   setInterval(()=>{
-    if(document.hidden||page.scrollTop>20||page.classList.contains('loading'))return;
+    if(busy||document.hidden||page.scrollTop>20||page.classList.contains('loading'))return;
     ci=(ci+1)%COLORS.length;
-    const old=box.lastElementChild,n=document.createElement('i'),r=getComputedStyle(box).borderTopLeftRadius,
-      cut=(l,rt)=>`inset(0 ${rt}% 0 ${l}% round ${r})`,o={duration:900,easing:'cubic-bezier(.65,0,.35,1)'};
-    n.style.background=COLORS[ci];n.style.clipPath=cut(100,0);box.append(n);
-    old.animate([{clipPath:cut(0,0)},{clipPath:cut(0,100)}],{...o,fill:'forwards'}).onfinish=()=>old.remove();
-    n.animate([{clipPath:cut(100,0)},{clipPath:cut(0,0)}],o).onfinish=()=>{n.style.clipPath=''};
-  },2800);
+    const old=box.lastElementChild,n=document.createElement('i'),bg=`background:${COLORS[ci]}`;
+    if(CALM.matches){old.remove();n.style.cssText=bg;box.append(n);return}
+    const gp=GAP/box.clientWidth*100;   /* the gap, in % of the box */
+    n.style.cssText=`${bg};left:100%;width:0%;opacity:0`;box.append(n);busy=true;
+    const t0=performance.now(),f=now=>{
+      const u=clamp((now-t0)/DUR),e=.5-.5*Math.cos(Math.PI*u),span=100-gp*Math.sin(Math.PI*e);   /* sine ease: no dead start, no hard stop */
+      old.style.left='0%';old.style.width=span*(1-e)+'%';
+      n.style.left=100-span*e+'%';n.style.width=span*e+'%';
+      old.style.opacity=clamp((1-e)/.12);n.style.opacity=clamp(e/.12);   /* a card fades in / out over its first / last hairline of width, so no sliver pops */
+      if(u<1)requestAnimationFrame(f);else{old.remove();n.style.cssText=bg;busy=false}
+    };
+    requestAnimationFrame(f);
+  },2700);
 }
 
 
@@ -406,12 +415,6 @@ const Ascii={
     const cs=getComputedStyle(el),r=el.getBoundingClientRect();
     if(el===O.fp)r.y+=O.fcut;   /* the footer is uncovered from the bottom up */
     s.save();
-    const cp=cs.clipPath.match(/^inset\(([^)]*)\)/);   /* a work sliding through the hero box is clipped: the lens sees only what is visible */
-    if(cp&&el!==O.fp){   /* (the footer panel has its own wipe, handled above) */
-      const [sd,rd]=cp[1].split(' round '),v=sd.trim().split(/\s+/),[t,rt,bt,l]=[v[0],v[1]??v[0],v[2]??v[0],v[3]??v[1]??v[0]].map((x,k)=>x.endsWith('%')?parseFloat(x)/100*(k%2?r.width:r.height):parseFloat(x)),   /* CSS shorthand: 1 to 4 values */
-        w=Math.max(0,r.width-l-rt),h=Math.max(0,r.height-t-bt);
-      s.beginPath();s.roundRect(r.left+l,r.top+t,w,h,Math.min(parseFloat(rd)||0,w/2,h/2));s.clip();
-    }
     if(clip&&(cs.overflow==='hidden'||el===O.fp)){if(!hit(r,box)){s.restore();return}s.beginPath();s.rect(r.left,r.top,r.width,r.height);s.clip()}
     if(el.tagName==='IMG'){s.beginPath();s.ellipse(r.left+r.width/2,r.top+r.height/2,r.width/2,r.height/2,0,0,7);if(mono){s.fillStyle='#fff';s.fill()}else{s.clip();s.drawImage(el,r.left,r.top,r.width,r.height)}}
     else if(el.tagName==='svg'){
