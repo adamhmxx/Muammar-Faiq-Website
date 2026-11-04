@@ -296,7 +296,7 @@ function reveal(root,on){
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
-  cw:6,ch:10,R:105,tail:26,p:null,on:false,trail:[],
+  cw:6,ch:10,R:68,tail:14,p:null,on:false,trail:[],
   init(){
     this.cv=$('#ascii');this.cx=this.cv.getContext('2d');
     this.sc=document.createElement('canvas');this.sx=this.sc.getContext('2d',{willReadFrequently:true});
@@ -318,7 +318,7 @@ const Ascii={
   },
   stamp(x,y,R,k){   /* soft disc into the target field; grows the work area */
     const {cw,ch,cols,rows,t}=this,i0=Math.max(0,Math.floor((x-R)/cw)),i1=Math.min(cols-1,Math.floor((x+R)/cw)),j0=Math.max(0,Math.floor((y-R)/ch)),j1=Math.min(rows-1,Math.floor((y+R)/ch)),u=this.u;
-    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=k*(1-smooth(R*.45,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v}
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=k*(1-smooth(R*.15,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v}
     if(i0<u[0])u[0]=i0;if(j0<u[1])u[1]=j0;if(i1>u[2])u[2]=i1;if(j1>u[3])u[3]=j1;
   },
   /* redraw the visible design inside the lens box, in paint order (DOM order matches the stacking); mono = coverage only */
@@ -367,7 +367,7 @@ const Ascii={
     }
     let i0=cols,j0=this.rows,i1=-1,j1=-1;
     for(let j=u[1];j<=u[3];j++)for(let i=u[0],k=j*cols+i;i<=u[2];i++,k++){
-      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?.55:.12);t[k]=0;   /* quick in (no lag behind the cursor), soft out */
+      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?.5:.1);t[k]=0;   /* quick in (no lag behind the cursor), soft out */
       a[k]=v<.01?0:v;if(a[k]){if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
     }
     const c=this.cx,d=this.dpr,o0=this.drawn;c.setTransform(1,0,0,1,0,0);
@@ -376,7 +376,7 @@ const Ascii={
     this.bb=[i0,j0,i1,j1];
     let S=this.snap;const st=page.scrollTop;
     if(!S||st!==S.st||++S.n>2||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
-      const x0=Math.max(0,i0-12),y0=Math.max(0,j0-8),w=Math.min(cols,i1+13)-x0,h=Math.min(this.rows,j1+9)-y0,s=this.sx,rows=this.rows;
+      const x0=Math.max(0,i0-10),y0=Math.max(0,j0-7),w=Math.min(cols,i1+11)-x0,h=Math.min(this.rows,j1+8)-y0,s=this.sx,rows=this.rows;
       const box={left:x0*cw,top:y0*ch,right:(x0+w)*cw,bottom:(y0+h)*ch};
       for(const mono of [0,1]){
         s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(x0,y0+mono*rows,w,h);
