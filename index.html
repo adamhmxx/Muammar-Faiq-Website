@@ -106,7 +106,8 @@ svg{display:block}
 .foot .col{position:absolute;top:56px;font-size:16px}
 .foot .lab{color:rgba(255,255,255,.6);margin-bottom:12px}
 .links{display:grid;gap:4px}
-.foot .c1{left:32px}.foot .c2{left:28.8%}.foot .c3{left:63.2%;top:58px}
+.foot .c1{left:32px}.foot .c2{left:28.8%}
+.foot .copy{margin-top:20px}
 /* "Get in touch." and the arrow share one line (arrow on the text baseline); the text shrinks before it would wrap */
 .foot .end{position:absolute;left:32px;right:32px;bottom:48px;display:flex;justify-content:space-between;align-items:baseline;gap:24px}
 .foot .big{font-size:min(13.5vw,calc((100vw - 272px)/5));letter-spacing:-.06em;line-height:.9;white-space:nowrap}
@@ -134,6 +135,7 @@ svg{display:block}
 #ap button{flex:1;height:30px;border:0;border-radius:100px;background:#262629;color:#fff;font:inherit;cursor:pointer;transition:background-color .3s ease}
 #ap button:hover{background:#303034}
 #page.loading ~ #apb,#page.loading ~ #ap{display:none}
+@media (max-width:640px){body.end #apb[aria-expanded=false]{opacity:0;pointer-events:none}}   /* phones: the chip would sit on the footer title */
 
 /* ═════════ tablet: 8 columns · margin 32 · gutter 16 ═════════ */
 @media (max-width:1024px){
@@ -145,7 +147,6 @@ svg{display:block}
   .footp{inset:24px}
   .foot .c1{left:24px}
   .foot .c2{left:36%}
-  .foot .c3{left:66%;right:24px}
   .foot .end{left:24px;right:24px}
   .foot .big{font-size:min(13.5vw,calc((100vw - 216px)/5))}
   .ar{width:96px;height:96px}
@@ -201,8 +202,7 @@ svg{display:block}
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
           <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#" data-to="0">Home</a><a data-rv href="#" data-to="1">Works</a><a data-rv href="#" data-to="0">About</a></nav></div>
-          <div class="col c2"><p class="lab" data-rv>Socials</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div></div>
-          <div class="col c3"><p data-rv>© 2026 Muammar Faiq. All rights reserved.</p></div>
+          <div class="col c2"><p class="lab" data-rv>Socials</p><div class="soc" data-rv><a href="#" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div><p class="copy" data-rv>© 2026 Muammar Faiq. All rights reserved.</p></div>
           <div class="end"><h2 class="big hd" data-rv="110">Get in touch.</h2>
           <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a></div>
         </footer>
@@ -220,8 +220,12 @@ const ease=t=>t<.5?4*t*t*t:1-(2-2*t)**3/2;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t)};
 const SETS=[".,'`",':;-~','=+<>ic','*xoaszv7','#%&kbdpq','@WMB8$0Q'],NOISE='!<>-_/[]{}=+*^?#01';   /* ASCII glyphs: 6 density groups (light → dense) + scramble set */
 const SETS_BY={mixed:SETS,minimal:['.',':','-','=+','*#','%@'],binary:['.','0','1','01','10','01'],code:['.,','<>','/\\','{}[]','()#','@%&$']};
+/* colour effects for the converted glyphs: [r,g,b] for a cell of luminance L at (i,j), tk = time */
+const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))};return [f(0),f(8),f(4)]};
+const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
+  :m==='rainbow'?hsl((i*2.2+j*1.6+tk*14)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={on:true,R:68,tail:14,soft:.15,rise:.5,fall:.1,cw:6,set:'mixed',color:'original',speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
+const ASCII_DEF={on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -324,7 +328,7 @@ function reveal(root,on){
     });
   }
   for(const el of $$('.links a,.btn')){
-    const txt=el.textContent;let raf=0;if(!el.hasAttribute('aria-label'))el.setAttribute('aria-label',txt);   /* screen readers never hear the scramble */
+    const txt=el.dataset.txt=el.textContent;let raf=0;if(!el.hasAttribute('aria-label'))el.setAttribute('aria-label',txt);   /* screen readers never hear the scramble */
     const run=()=>{
       if(TOUCH.matches||CALM.matches)return;
       cancelAnimationFrame(raf);el.style.width=el.offsetWidth+'px';
@@ -344,8 +348,8 @@ function reveal(root,on){
       Each frame the page is redrawn twice into snapshots with one pixel per character cell (text, shapes, icons and the
       photo at their live positions, so it follows scrolling and animation): once in colour and once as plain coverage.
       Coverage picks the glyph, and colour ÷ coverage gives back the object's original colour for it. The lens is a liquid
-      blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Buttons and links
-      are left as they are. ── */
+      blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Thin strokes pick
+      denser glyphs so small text stays readable. ── */
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
@@ -353,7 +357,6 @@ const Ascii={
   init(){
     this.cv=$('#ascii');this.cx=this.cv.getContext('2d');
     this.sc=document.createElement('canvas');this.sx=this.sc.getContext('2d',{willReadFrequently:true});
-    this.keep=$$('.btn,.links a,.soc a,.arrow,.tool');   /* buttons and links stay themselves inside the lens */
     try{Object.assign(this.cfg,JSON.parse(localStorage.getItem('ascii-cfg')||'{}'))}catch{}
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
@@ -366,13 +369,13 @@ const Ascii={
     addEventListener('touchend',off,{passive:true});
   },
   size(){
-    const d=this.dpr=Math.min(2,devicePixelRatio||1),cw=this.cw=Math.round(this.cfg.cw*(this.coarse?1.35:1)),ch=this.ch=Math.round(cw*1.65),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
-    Object.assign(this,{cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows),bb:null,u:null,drawn:null,snap:null});
+    const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),cw=this.cw=Math.max(3,gs+this.cfg.ls),ch=this.ch=Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
+    Object.assign(this,{fs:Math.round(gs*1.65)*.95,cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows),bb:null,u:null,drawn:null,snap:null});
     this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* snapshots: colour on top, coverage below */
   },
   stamp(x,y,R,k){   /* soft disc into the target field; grows the work area */
     const {cw,ch,cols,rows,t}=this,i0=Math.max(0,Math.floor((x-R)/cw)),i1=Math.min(cols-1,Math.floor((x+R)/cw)),j0=Math.max(0,Math.floor((y-R)/ch)),j1=Math.min(rows-1,Math.floor((y+R)/ch)),u=this.u;
-    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=k*(1-smooth(R*this.cfg.soft,R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v}
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=k*(1-smooth(R*(1-this.cfg.edge),R,Math.hypot((i+.5)*cw-x,(j+.5)*ch-y))),n=j*cols+i;if(v>t[n])t[n]=v}
     if(i0<u[0])u[0]=i0;if(j0<u[1])u[1]=j0;if(i1>u[2])u[2]=i1;if(j1>u[3])u[3]=j1;
   },
   /* redraw the visible design inside the lens box, in paint order (DOM order matches the stacking); mono = coverage only */
@@ -386,10 +389,10 @@ const Ascii={
       s.fillStyle=ink(cs.color);
       if(!mono&&pe.matches('.tp')){const gr=s.createLinearGradient(0,r.top,0,r.bottom);gr.addColorStop(0,'#fff');gr.addColorStop(1,'rgba(255,255,255,.2)');s.fillStyle=gr}   /* the title's own 100% → 20% fade */
       const g=document.createRange();
-      for(const m of el.data.matchAll(/\S+/g)){g.setStart(el,m.index);g.setEnd(el,m.index+m[0].length);const w=g.getBoundingClientRect();if(hit(w,box))s.fillText(m[0],w.left,w.top+w.height/2)}
+      for(const m of (pe.dataset.txt||el.data).matchAll(/\S+/g)){g.setStart(el,m.index);g.setEnd(el,m.index+m[0].length);const w=g.getBoundingClientRect();if(hit(w,box))s.fillText(m[0],w.left,w.top+w.height/2)}
       return;
     }
-    if(el.nodeType!==1||el.matches('.fx,.tip>i,script')||!el.checkVisibility({opacityProperty:!el.matches('.tp'),visibilityProperty:true}))return;   /* the title's plain copy fades out while its blurred copy fades in: the lens always reads the plain one */
+    if(el.nodeType!==1||el.matches('.fx,.tip>i,.gl,script')||!el.checkVisibility({opacityProperty:!el.matches('.tp,.scr svg'),visibilityProperty:true}))return;   /* the title's plain copy fades out while its blurred copy fades in: the lens always reads the plain one */
     const cs=getComputedStyle(el),r=el.getBoundingClientRect();
     if(el===O.fp)r.y+=O.fcut;   /* the footer is uncovered from the bottom up */
     s.save();
@@ -440,31 +443,29 @@ const Ascii={
       }
       S=this.snap={i0:x0,j0:y0,w,h,st,n:0,box,px:s.getImageData(x0,y0,w,h).data,cv:s.getImageData(x0,y0+rows,w,h).data};
     }
-    const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${ch*.95}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
-    const tk=now/C.speed,SET=SETS_BY[C.set]||SETS,
-      TINT=C.color==='white'?'rgb(232,232,234)':C.color==='accent'?'rgb(134,82,255)':null,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff';
+    const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${this.fs}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
+    const tk=now/C.speed,SET=SETS_BY[C.set]||SETS,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff',
+      sm=C.smooth,m0=.05*(1-sm),m1=.45+.5*sm,g0=.08*(1-sm),g1=.5+.45*sm,   /* how gradually cells fade between the lens and the page */
+      ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2;                      /* glyphs sit centred in their (spaced) cell */
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
-      c.globalAlpha=smooth(.05,.45,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
+      c.globalAlpha=smooth(m0,m1,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06){
         if(C.bg&&C.bgAmt>0&&mix(i,j,3)%5<2){   /* nothing here: a faint scatter of glyphs (2 cells in 5, to stay light) still shows what the lens reveals */
           const n=.5+.5*Math.sin(i*.31+tk*.35)*Math.cos(j*.23-tk*.27),g=SET[clamp((n*3)|0,0,2)];
-          c.globalAlpha=smooth(.08,.5,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+.5,j*ch+1);
+          c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
         }
         continue;
       }
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
       const L=(.3*R+.59*G+.11*B)/255,rim=v<.5&&Math.random()<C.rim*(1-v);
-      const set=SET[clamp(Math.round((.65*A+.35*L)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
-      c.globalAlpha=smooth(.08,.5,v);c.fillStyle=TINT||`rgb(${R},${G},${B})`;c.fillText(gl,i*cw+.5,j*ch+1);
+      const set=SET[clamp(Math.round((.65*Math.min(1,A*1.5)+.35*L)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
+      let cr=R,cg=G,cb=B;
+      if(C.color!=='original'){const T=tint(C.color,L,i,j,tk,R,G,B);cr=lerp(R,T[0],C.colorAmt);cg=lerp(G,T[1],C.colorAmt);cb=lerp(B,T[2],C.colorAmt)}
+      c.globalAlpha=smooth(g0,g1,v)*C.alpha;c.fillStyle=`rgb(${cr|0},${cg|0},${cb|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);
     }
     c.globalAlpha=1;this.drawn=[i0*cw,j0*ch,(i1-i0+1)*cw,(j1-j0+1)*ch];
-    for(const el of this.keep){
-      const r=el.getBoundingClientRect();if(!hit(r,S.box)||!el.checkVisibility({opacityProperty:true,visibilityProperty:true}))continue;
-      c.save();c.beginPath();c.roundRect(r.left,r.top,r.width,r.height,Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius)||0,r.height/2,r.width/2));c.clip();
-      c.clearRect(r.left,r.top,r.width,r.height);c.restore();
-    }
   }
 };
 
@@ -545,7 +546,7 @@ const O={
     /* footer: a full-width wipe, bottom → top */
     const uF=this.uF,f=ease(clamp((u-uF)/1.2)),H=this.fh;
     this.fp.style.visibility=f>0?'visible':'hidden';
-    this.fcut=(1-f)*H;this.fp.style.clipPath=`inset(${this.fcut}px 0 0 round ${this.fr})`;
+    document.body.classList.toggle('end',f>.5);this.fcut=(1-f)*H;this.fp.style.clipPath=`inset(${this.fcut}px 0 0 round ${this.fr})`;
     reveal(this.foot,this.foot._on?u>uF+1.05:u>uF+1.25);
   }
 };
@@ -553,8 +554,9 @@ const O={
 /* ── ASCII control panel: every lens parameter, live. Settings are remembered in this browser ── */
 const Panel={
   spec:[
-    ['Lens',[['on','Enabled'],['R','Radius','px',30,180,1],['tail','Tail length','',1,40,1],['soft','Edge softness','',0,.9,.01],['rise','Rise speed','',.1,1,.01],['fall','Fade-out speed','',.03,.4,.01]]],
-    ['Glyphs',[['cw','Cell size','px',4,14,1],['set','Glyph set',['mixed','minimal','binary','code']],['color','Colour',['original','white','accent']],['speed','Shuffle interval','ms',40,600,10],['rim','Rim scramble','',0,1,.05]]],
+    ['Lens',[['on','Enabled'],['R','Radius','px',30,180,1],['tail','Tail length','',1,40,1],['edge','Edge softness','',.05,1,.01],['smooth','Fade smoothness','',0,1,.01],['rise','Rise speed','',.1,1,.01],['fall','Fade-out speed','',.03,.4,.01]]],
+    ['Glyphs',[['cw','Glyph size','px',4,14,1],['ls','Letter spacing','px',-2,10,1],['lh','Line spacing','px',-2,12,1],['set','Glyph set',['mixed','minimal','binary','code']],['speed','Shuffle interval','ms',40,600,10],['rim','Rim scramble','',0,1,.05],['alpha','Glyph opacity','',.2,1,.05]]],
+    ['Colour',[['color','Effect',['original','white','accent','duotone','rainbow','invert']],['colorAmt','Effect strength','',0,1,.05]]],
     ['Background',[['bg','Reveal on empty areas'],['bgAmt','Strength','',0,.3,.01],['bgTint','Tint',['accent','white','dim']]]]],
   init(){
     const C=Ascii.cfg,ctl=([k,l,u,min,max,st])=>Array.isArray(u)?`<label>${l}<select data-k="${k}">${u.map(o=>`<option>${o}</option>`).join('')}</select></label>`
@@ -571,7 +573,7 @@ const Panel={
     ap.addEventListener('input',e=>{
       const el=e.target,k=el.dataset.k;if(!k)return;
       C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();
-      if(k==='cw'){Ascii.coarse=false;Ascii.size()}
+      if(k==='cw'||k==='ls'||k==='lh'){Ascii.coarse=false;Ascii.size()}
     });
     ap.addEventListener('click',e=>{
       const a=e.target.dataset.a;if(!a)return;
