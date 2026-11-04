@@ -32,6 +32,7 @@ svg{display:block}
 .clock{position:fixed;z-index:60;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:24px;height:56px;
   padding:0 12px 0 20px;border-radius:72px;background:#18181a}
 .t{font-size:14px;color:var(--dim);white-space:nowrap}
+.tm{display:flex;gap:4px}   /* the zone and the time read as one line of text */
 .btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap;transition:background-color .35s ease}
 .btn:hover,.btn:focus-visible{background:var(--pink2)}   /* + its label scrambles (see script) */
 
@@ -122,11 +123,14 @@ svg{display:block}
 /* ── ASCII control panel ── */
 #apb{position:fixed;z-index:1200;left:16px;bottom:16px;height:36px;padding:0 14px;border:0;border-radius:100px;background:#18181a;color:var(--dim);font:400 13px var(--bd);cursor:pointer;transition:background-color .3s ease,color .3s ease}
 #apb:hover,#apb[aria-expanded=true]{background:#262629;color:#fff}
-#ap{position:fixed;z-index:1200;left:16px;bottom:62px;width:min(300px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 90px));overflow:auto;padding:14px 16px 16px;border-radius:18px;background:rgba(24,24,26,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:400 12px var(--bd);color:var(--dim);scrollbar-width:thin;opacity:0;translate:0 8px;pointer-events:none;transition:opacity .3s ease,translate .45s cubic-bezier(.16,1,.3,1)}
+#ap{position:fixed;z-index:1200;left:16px;bottom:62px;width:min(320px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 90px));overflow:auto;padding:14px 16px 16px;border-radius:18px;background:rgba(24,24,26,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:400 12px var(--bd);color:var(--dim);scrollbar-width:thin;opacity:0;translate:0 8px;pointer-events:none;transition:opacity .3s ease,translate .45s cubic-bezier(.16,1,.3,1)}
 #ap.open{opacity:1;translate:0 0;pointer-events:auto}
 #ap section{margin-top:14px}
 #ap h4{margin:0 0 6px;font:500 11px var(--hd);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45)}
-#ap label{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;margin:8px 0}
+#ap label{display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 10px;margin:14px 0}
+#ap label b{font-weight:400;color:#fff}
+#ap small,#ap .note{grid-column:1/-1;font-size:11px;line-height:1.4;color:rgba(255,255,255,.42)}
+#ap .note{margin:0 0 4px}
 #ap output{font-variant-numeric:tabular-nums;color:#fff}
 #ap input[type=range]{grid-column:1/-1;width:100%;margin:0;accent-color:var(--pink)}
 #ap input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--pink)}
@@ -214,7 +218,7 @@ svg{display:block}
       </div>
     </section>
   </div>
-  <div class="clock"><span class="t">WIB (ID)</span><span class="t clk">11:29 PM</span><a class="btn" href="mailto:hello@muammarfaiq.com" aria-label="Email hello@muammarfaiq.com">Email me</a></div>
+  <div class="clock"><span class="tm"><span class="t">WIB (ID)</span><span class="t clk">11:29 PM</span></span><a class="btn" href="mailto:hello@muammarfaiq.com" aria-label="Email hello@muammarfaiq.com">Email me</a></div>
 </main>
 
 <script>
@@ -228,9 +232,9 @@ const SETS_BY={mixed:SETS,minimal:['.',':','-','=+','*#','%@'],binary:['.','0','
 /* colour effects for the converted glyphs: [r,g,b] for a cell of luminance L at (i,j), tk = time */
 const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))};return [f(0),f(8),f(4)]};
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
-  :m==='rainbow'?hsl((i*2.2+j*1.6+tk*14)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
+  :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={mode:'ascii',px:12,levels:8,gap:0,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
+const ASCII_DEF={mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -356,6 +360,7 @@ function reveal(root,on){
       blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Thin strokes pick
       denser glyphs so small text stays readable. ── */
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
+const HOT='a,[role=button],.tip';   /* interactive things: the lens yields to them */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
   cw:6,ch:10,p:null,on:false,trail:[],coarse:false,cfg:{...ASCII_DEF},
@@ -366,11 +371,11 @@ const Ascii={
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
     const at=(x,y)=>{if(this.cfg.on&&!page.classList.contains('loading')&&!CALM.matches){this.p={x,y};this.mt=performance.now()}},off=()=>{this.p=null};
-    addEventListener('pointermove',e=>e.target.closest('#ap,#apb')?off():at(e.clientX,e.clientY),{passive:true});
+    addEventListener('pointermove',e=>{const t=e.target,ui=t.closest('#ap,#apb');this.over=!ui&&!!t.closest(HOT);ui?off():at(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',off);
     /* touch: the lens sits above the finger, where it can be seen */
-    addEventListener('touchstart',e=>{if(e.target.closest('#ap,#apb'))return;const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY-this.cfg.R*.7)},{passive:true});
-    addEventListener('touchmove',e=>{if(e.target.closest('#ap,#apb'))return;const t=e.touches[0];at(t.clientX,t.clientY-this.cfg.R*.7)},{passive:true});
+    addEventListener('touchstart',e=>{if(e.target.closest('#ap,#apb'))return;this.over=!!e.target.closest(HOT);const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY-this.cfg.R*this.cfg.touchOff)},{passive:true});
+    addEventListener('touchmove',e=>{if(e.target.closest('#ap,#apb'))return;const t=e.touches[0];at(t.clientX,t.clientY-this.cfg.R*this.cfg.touchOff)},{passive:true});
     addEventListener('touchend',off,{passive:true});
   },
   size(){
@@ -419,14 +424,15 @@ const Ascii={
     const {a,t,cols,cw,ch,trail}=this,C=this.cfg,now=performance.now();
     /* the blob: the head at full size, the tail made of the recent positions, each smaller and fainter with age.
        It only lives while the pointer moves: once it rests, the tail retracts into the head and the whole lens fades */
-    const moving=C.on&&this.p&&now-this.mt<90;
+    const away=C.yieldTo&&this.over,moving=C.on&&this.p&&!away&&(C.hold||now-this.mt<C.rest);
     if(moving)trail.unshift({...this.p});
     if(trail.length>C.tail||!moving&&trail.length)trail.pop();
+    if(away&&trail.length)trail.length=Math.max(0,trail.length-3);   /* retract quickly: the pointer wants the button, not the lens */
     if(!trail.length&&!this.on)return;
     const u=this.u=this.bb?[...this.bb]:[cols,this.rows,-1,-1];   /* work area: what was lit ∪ what is stamped now */
     for(let k=trail.length-1;k>=0;k--){
-      const q=trail[k],f=1-k/C.tail,r=C.R*(.25+.75*f**.8),n=k?Math.max(1,Math.ceil(Math.hypot(trail[k-1].x-q.x,trail[k-1].y-q.y)/16)):1;
-      for(let m=0;m<n;m++)this.stamp(k?lerp(q.x,trail[k-1].x,m/n):q.x,k?lerp(q.y,trail[k-1].y,m/n):q.y,r,f**.6);
+      const q=trail[k],f=1-k/C.tail,r=C.R*(C.tailTaper+(1-C.tailTaper)*f**C.tailCurve),n=k?Math.max(1,Math.ceil(Math.hypot(trail[k-1].x-q.x,trail[k-1].y-q.y)/16)):1;
+      for(let m=0;m<n;m++)this.stamp(k?lerp(q.x,trail[k-1].x,m/n):q.x,k?lerp(q.y,trail[k-1].y,m/n):q.y,r,f**C.tailFade);
     }
     let i0=cols,j0=this.rows,i1=-1,j1=-1;
     for(let j=u[1];j<=u[3];j++)for(let i=u[0],k=j*cols+i;i<=u[2];i++,k++){
@@ -449,16 +455,16 @@ const Ascii={
       S=this.snap={i0:x0,j0:y0,w,h,st,n:0,box,px:s.getImageData(x0,y0,w,h).data,cv:s.getImageData(x0,y0+rows,w,h).data};
     }
     const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${this.fs}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
-    const tk=now/C.speed,SET=SETS_BY[C.set]||SETS,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff',
+    const tk=now/C.speed,ht=now*.1*C.hueSpeed,SET=SETS_BY[C.set]||SETS,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff',
       sm=C.smooth,m0=.05*(1-sm),m1=.45+.5*sm,g0=.08*(1-sm),g1=.5+.45*sm,   /* how gradually cells fade between the lens and the page */
       ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2,pix=C.mode==='pixel',gp=pix?Math.min(C.gap,(cw-2)/2):0,LV=C.levels|0,QS=255/Math.max(1,LV-1);   /* pixel mode: block gap, colour levels */                      /* glyphs sit centred in their (spaced) cell */
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
-      c.globalAlpha=smooth(m0,m1,v);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
+      c.globalAlpha=smooth(m0,m1,v)*(1-C.under);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06){
-        if(C.bg&&C.bgAmt>0&&mix(i,j,3)%5<2){   /* nothing here: a faint scatter of glyphs (2 cells in 5, to stay light) still shows what the lens reveals */
-          const n=.5+.5*Math.sin(i*.31+tk*.35)*Math.cos(j*.23-tk*.27),g=SET[clamp((n*3)|0,0,2)];
+        if(C.bg&&C.bgAmt>0&&mix(i,j,3)%100<C.bgDensity*100){   /* nothing here: a faint scatter of glyphs still shows what the lens reveals (only a share of the cells, to stay light) */
+          const bs=C.bgScale,bv=C.bgSpeed,n=.5+.5*Math.sin(i*.31/bs+tk*.35*bv)*Math.cos(j*.23/bs-tk*.27*bv),g=SET[clamp((n*3)|0,0,2)];
           c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;if(pix)c.fillRect(i*cw+gp+1,j*ch+gp+1,cw-2*gp-2,ch-2*gp-2);else c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
         }
         continue;
@@ -466,15 +472,16 @@ const Ascii={
       if(pix){   /* pixelated: the cell's own colour as one solid block */
         let r=px[o],g=px[o+1],bl=px[o+2];
         if(LV<16){r=Math.round(r/QS)*QS;g=Math.round(g/QS)*QS;bl=Math.round(bl/QS)*QS}
-        if(C.color!=='original'){const T=tint(C.color,(.3*r+.59*g+.11*bl)/255,i,j,tk,r,g,bl);r=lerp(r,T[0],C.colorAmt);g=lerp(g,T[1],C.colorAmt);bl=lerp(bl,T[2],C.colorAmt)}
+        if(C.color!=='original'){const T=tint(C.color,(.3*r+.59*g+.11*bl)/255,i,j,ht,r,g,bl);r=lerp(r,T[0],C.colorAmt);g=lerp(g,T[1],C.colorAmt);bl=lerp(bl,T[2],C.colorAmt)}
         c.globalAlpha=smooth(m0,m1,v)*C.alpha;c.fillStyle=`rgb(${r|0},${g|0},${bl|0})`;c.fillRect(i*cw+gp,j*ch+gp,cw-2*gp,ch-2*gp);continue;
       }
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
-      const L=(.3*R+.59*G+.11*B)/255,rim=v<.5&&Math.random()<C.rim*(1-v);
-      const set=SET[clamp(Math.round((.65*Math.min(1,A*1.5)+.35*L)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
+      const L=(.3*R+.59*G+.11*B)/255,rim=v<C.rimWidth&&Math.random()<C.rim*(1-v);
+      const set=SET[clamp(Math.round(clamp(((.65*Math.min(1,A*C.boost)+.35*L)-.5)*C.contrast+.5+C.bias,0,1)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
       let cr=R,cg=G,cb=B;
-      if(C.color!=='original'){const T=tint(C.color,L,i,j,tk,R,G,B);cr=lerp(R,T[0],C.colorAmt);cg=lerp(G,T[1],C.colorAmt);cb=lerp(B,T[2],C.colorAmt)}
-      c.globalAlpha=smooth(g0,g1,v)*C.alpha;c.fillStyle=`rgb(${cr|0},${cg|0},${cb|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);
+      if(C.sat!==1||C.bright!==1){const y=.3*R+.59*G+.11*B;cr=(y+(R-y)*C.sat)*C.bright;cg=(y+(G-y)*C.sat)*C.bright;cb=(y+(B-y)*C.sat)*C.bright}
+      if(C.color!=='original'){const T=tint(C.color,L,i,j,ht,R,G,B);cr=lerp(cr,T[0],C.colorAmt);cg=lerp(cg,T[1],C.colorAmt);cb=lerp(cb,T[2],C.colorAmt)}
+      c.globalAlpha=smooth(g0,g1,v)*C.alpha;c.fillStyle=`rgb(${clamp(cr,0,255)|0},${clamp(cg,0,255)|0},${clamp(cb,0,255)|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);
     }
     c.globalAlpha=1;this.drawn=[i0*cw,j0*ch,(i1-i0+1)*cw,(j1-j0+1)*ch];
   }
@@ -562,37 +569,96 @@ const O={
   }
 };
 
-/* ── ASCII control panel: every lens parameter, live. Settings are remembered in this browser ── */
+/* ── Hover FX panel: every lens parameter, live, each with a one-line explanation. Settings are remembered in this browser ── */
+const MODES=['ascii'];   /* add 'pixel' here to bring the pixelated mode (and its tab) back */
+const Tg=(k,l,d)=>({t:'b',k,l,d}),Sl=(k,l,d,o)=>({t:'s',k,l,d,o}),Rg=(k,l,d,u,min,max,st)=>({t:'n',k,l,d,u,min,max,st});
+const PRESETS={
+  Default:{},
+  Subtle:{R:52,tail:10,alpha:.7,bgAmt:.12,edge:1,smooth:.8},
+  Terminal:{set:'code',color:'white',speed:90,rim:.5,ls:1,bgTint:'white',bgAmt:.16},
+  Neon:{color:'rainbow',colorAmt:.85,R:84,tail:20,bgAmt:.3},
+  Heavy:{R:110,tail:26,cw:8,set:'minimal',boost:2}
+};
 const Panel={
   spec:[
-    ['Lens',[['on','Enabled'],['R','Radius','px',30,180,1],['tail','Tail length','',1,40,1],['edge','Edge softness','',.05,1,.01],['smooth','Fade smoothness','',0,1,.01],['rise','Rise speed','',.1,1,.01],['fall','Fade-out speed','',.03,.4,.01]]],
-    ['Glyphs',[['cw','Glyph size','px',4,14,1],['ls','Letter spacing','px',-2,10,1],['lh','Line spacing','px',-2,12,1],['set','Glyph set',['mixed','minimal','binary','code']],['speed','Shuffle interval','ms',40,600,10],['rim','Rim scramble','',0,1,.05]],'ascii'],
-    ['Pixels',[['px','Pixel size','px',4,40,1],['levels','Colour levels','',2,16,1],['gap','Block gap','px',0,6,1]],'pixel'],
-    ['Colour',[['color','Effect',['original','white','accent','duotone','rainbow','invert']],['colorAmt','Effect strength','',0,1,.05],['alpha','Opacity','',.2,1,.05]]],
-    ['Background',[['bg','Reveal on empty areas'],['bgAmt','Strength','',0,.3,.01],['bgTint','Tint',['accent','white','dim']]]]],
+    ['Lens','The area around the pointer that turns into ASCII.',[
+      Tg('on','Enabled','Turns the whole hover effect on or off.'),
+      Rg('R','Radius','Size of the lens head under the pointer.','px',30,180,1),
+      Rg('tail','Tail length','How many recent pointer positions the tail follows. Longer means a longer liquid trail.','',1,40,1),
+      Rg('tailTaper','Tail taper','How thin the tail gets at its end. 0 is a needle, 1 keeps the full width.','',0,1,.01),
+      Rg('tailCurve','Tail curve','Shape of the taper. Low keeps the tail fat for longer, high thins it out quickly.','',.3,2,.01),
+      Rg('tailFade','Tail fade','How quickly the tail fades toward its end.','',.2,2,.01),
+      Rg('edge','Edge softness','Width of the soft border. High blends the lens into the page, low gives a crisp circle.','',.05,1,.01),
+      Rg('smooth','Fade smoothness','How gradually characters fade in at the border. High removes any sudden drop-off.','',0,1,.01),
+      Rg('rise','Rise speed','How fast the lens appears at the pointer. High is instant, low lags behind.','',.1,1,.01),
+      Rg('fall','Fade-out speed','How fast the lens fades after the pointer leaves it.','',.03,.4,.01),
+      Rg('rest','Rest delay','How long the lens stays after the pointer stops, before it retracts.','ms',0,600,10),
+      Tg('hold','Keep while still','Keeps the lens on while the pointer rests, instead of retracting.')]],
+    ['Behaviour','How the lens reacts to what is under it.',[
+      Tg('yieldTo','Yield to buttons & links','The lens steps aside over buttons, links and icons, so their own hover state stays clear and easy to click.'),
+      Rg('boost','Text legibility','Pushes thin strokes (small text) toward denser characters so they stay readable.','',1,3,.05),
+      Rg('under','Original visibility','How much of the original design still shows through beneath the characters.','',0,1,.05),
+      Rg('touchOff','Touch offset','On phones, how far above the finger the lens sits (times the radius), so the finger does not cover it.','',0,1.5,.05),
+      Tg('perf','Auto performance mode','Switches to coarser cells automatically if frames start running late.')]],
+    ['Glyphs','The characters the design is rebuilt from.',[
+      Rg('cw','Glyph size','Size of each character.','px',4,14,1),
+      Rg('ls','Letter spacing','Extra space between characters, sideways.','px',-2,10,1),
+      Rg('lh','Line spacing','Extra space between rows of characters.','px',-2,12,1),
+      Sl('set','Glyph set','Which characters are used, from light to dense.',['mixed','minimal','binary','code']),
+      Rg('speed','Shuffle interval','How often each character changes to another of the same density.','ms',40,600,10),
+      Rg('rim','Rim scramble','How many characters at the border flicker through random symbols.','',0,1,.05),
+      Rg('rimWidth','Rim width','How far in from the border the scrambling zone reaches.','',.1,.9,.05),
+      Rg('bias','Density bias','Shifts every character lighter (negative) or denser (positive).','',-.3,.3,.01),
+      Rg('contrast','Density contrast','Spreads or squeezes the light-to-dense range. High is punchy, low is flat.','',.5,2,.05)],'ascii'],
+    ['Pixels','The blocks the design is rebuilt from.',[
+      Rg('px','Pixel size','Size of each block.','px',4,40,1),
+      Rg('levels','Colour levels','How many shades per colour. Fewer looks more retro.','',2,16,1),
+      Rg('gap','Block gap','Grid line between blocks.','px',0,6,1)],'pixel'],
+    ['Colour','How the converted characters are coloured.',[
+      Sl('color','Effect','Recolours the characters. Original keeps the colour of what is underneath.',['original','white','accent','duotone','rainbow','invert']),
+      Rg('colorAmt','Effect strength','How much of the effect is mixed over the original colour.','',0,1,.05),
+      Rg('sat','Saturation','Boosts or drains the original colours before any effect.','',0,2,.05),
+      Rg('bright','Brightness','Makes the characters brighter or dimmer.','',.5,1.5,.05),
+      Rg('hueSpeed','Rainbow speed','How fast the rainbow effect cycles.','',0,4,.05),
+      Rg('alpha','Opacity','How solid the characters are.','',.2,1,.05)]],
+    ['Background','A faint field of characters shown where there is nothing to convert.',[
+      Tg('bg','Reveal on empty areas','Lets the lens show a quiet texture even over empty background.'),
+      Rg('bgAmt','Strength','How visible the texture is.','',0,.3,.01),
+      Sl('bgTint','Tint','Colour of the texture.',['accent','white','dim']),
+      Rg('bgDensity','Density','Share of the empty cells that get a character.','',.1,1,.05),
+      Rg('bgScale','Pattern scale','Size of the drifting waves in the pattern.','',.5,3,.05),
+      Rg('bgSpeed','Drift speed','How fast the pattern drifts.','',0,2,.05)]]],
   init(){
-    const C=Ascii.cfg,ctl=([k,l,u,min,max,st])=>Array.isArray(u)?`<label>${l}<select data-k="${k}">${u.map(o=>`<option>${o}</option>`).join('')}</select></label>`
-      :min===undefined?`<label>${l}<input type="checkbox" data-k="${k}"></label>`
-      :`<label>${l}<output></output><input type="range" data-k="${k}" min="${min}" max="${max}" step="${st}"></label>`;
+    const C=Ascii.cfg;
+    if(!MODES.includes(C.mode)){C.mode=MODES[0];Ascii.size()}
+    const ctl=x=>{const d=`<small>${x.d}</small>`;
+      return x.t==='s'?`<label><b>${x.l}</b><select data-k="${x.k}">${x.o.map(o=>`<option>${o}</option>`).join('')}</select>${d}</label>`
+        :x.t==='b'?`<label><b>${x.l}</b><input type="checkbox" data-k="${x.k}">${d}</label>`
+        :`<label><b>${x.l}</b><output></output>${d}<input type="range" data-k="${x.k}" min="${x.min}" max="${x.max}" step="${x.st}"></label>`};
     const ap=this.ap=document.createElement('aside'),btn=document.createElement('button');
     ap.id='ap';ap.setAttribute('aria-label','Hover effect settings');btn.id='apb';btn.textContent='Hover FX';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','ap');
-    ap.innerHTML='<div class="tabs" role="tablist" aria-label="Hover mode"><button role="tab" data-m="ascii">ASCII</button><button role="tab" data-m="pixel">Pixel</button></div>'+this.spec.map(([h,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4>${l.map(ctl).join('')}</section>`).join('')+'<div class="acts"><button data-a="demo">Play demo</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>';
+    const tabs=MODES.length>1?`<div class="tabs" role="tablist" aria-label="Hover mode">${MODES.map(m=>`<button role="tab" data-m="${m}">${m==='ascii'?'ASCII':'Pixel'}</button>`).join('')}</div>`:'';
+    const presets=`<label><b>Preset</b><select data-p>${['Custom',...Object.keys(PRESETS)].map(o=>`<option>${o}</option>`).join('')}</select><small>Start from a ready-made look, then fine-tune below.</small></label>`;
+    ap.innerHTML=tabs+presets+this.spec.map(([h,i,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4><p class="note">${i}</p>${l.map(ctl).join('')}</section>`).join('')
+      +'<div class="acts"><button data-a="demo">Play demo</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>';
     document.body.append(btn,ap);
-    const units=Object.fromEntries(this.spec.flatMap(([,l])=>l.map(([k,,u])=>[k,typeof u==='string'?u:''])));
-    const sync=el=>{const k=el.dataset.k;if(el.type==='checkbox')el.checked=C[k];else el.value=C[k];if(el.type==='range')el.previousElementSibling.textContent=C[k]+units[k]};
-    const all=()=>$$('[data-k]',ap).forEach(sync),save=()=>{try{localStorage.setItem('ascii-cfg',JSON.stringify(C))}catch{}};
+    const units=Object.fromEntries(this.spec.flatMap(s=>s[2]).map(x=>[x.k,x.u||''])),pre=$('[data-p]',ap);
+    const sync=el=>{const k=el.dataset.k;if(el.type==='checkbox')el.checked=C[k];else el.value=C[k];if(el.type==='range')el.parentNode.querySelector('output').textContent=C[k]+units[k]};
     const mode=()=>{ap.dataset.mode=C.mode;$$('[role=tab]',ap).forEach(t=>t.setAttribute('aria-selected',t.dataset.m===C.mode))};
+    const all=()=>$$('[data-k]',ap).forEach(sync),save=()=>{try{localStorage.setItem('ascii-cfg',JSON.stringify(C))}catch{}},resize=()=>{Ascii.coarse=false;Ascii.size()};
     all();mode();
     ap.addEventListener('keydown',e=>{const t=e.target;if(t.getAttribute('role')==='tab'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const o=$$('[role=tab]',ap).find(x=>x!==t);o.focus();o.click()}});
     ap.addEventListener('input',e=>{
-      const el=e.target,k=el.dataset.k;if(!k)return;
-      C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();
-      if(k==='cw'||k==='ls'||k==='lh'||k==='px'){Ascii.coarse=false;Ascii.size()}
+      const el=e.target;
+      if('p' in el.dataset){if(el.value!=='Custom'){Object.assign(C,ASCII_DEF,PRESETS[el.value],{mode:C.mode});resize();all();save()}return}
+      const k=el.dataset.k;if(!k)return;
+      C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();pre.value='Custom';
+      if(k==='cw'||k==='ls'||k==='lh'||k==='px')resize();
     });
     ap.addEventListener('click',e=>{
-      const m=e.target.dataset.m;if(m){C.mode=m;Ascii.coarse=false;Ascii.size();mode();save();return}   /* the other hover mode, live */
+      const m=e.target.dataset.m;if(m){C.mode=m;resize();mode();save();return}   /* the other hover mode, live */
       const a=e.target.dataset.a;if(!a)return;
-      if(a==='reset'){Object.assign(C,ASCII_DEF,{mode:C.mode});Ascii.coarse=false;Ascii.size();all();save()}
+      if(a==='reset'){Object.assign(C,ASCII_DEF,{mode:C.mode});resize();all();pre.value='Default';save()}
       if(a==='copy')navigator.clipboard?.writeText(JSON.stringify(C,null,1)).then(()=>{e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200)},()=>{});
       if(a==='demo'){   /* a lens sweeping the middle of the page, to judge the settings by */
         clearInterval(this.dm);const t0=performance.now();
@@ -612,7 +678,7 @@ let lastT=0,late=0;
 function loop(now){
   Ascii.frame();O.tick();   /* the lens reads the layout before the story writes styles: no forced layout mid-frame */
   const dt=now-lastT;lastT=now;
-  if(Ascii.on&&dt<250){late=late*.95+(dt>22)*.05;if(late>.4&&!Ascii.coarse){Ascii.coarse=true;Ascii.size()}}
+  if(Ascii.on&&dt<250){late=late*.95+(dt>22)*.05;if(Ascii.cfg.perf&&late>.4&&!Ascii.coarse){Ascii.coarse=true;Ascii.size()}}
   requestAnimationFrame(loop);
 }
 Ascii.init();O.init();Smooth.init();Panel.init();
