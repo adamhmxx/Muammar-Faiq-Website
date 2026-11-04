@@ -10,6 +10,7 @@
 <style>
 /* Dark, desktop-first single page. 12-col grid · margin 64 · gutter 16. Heading: Inter Display 500 · Body: Geist 400 */
 :root{color-scheme:dark;--bg:#0e0e10;--card:#1c1c1d;--pink:#8652ff;--pink2:#6b3fe0;--tx:#e8e8ea;--dim:rgba(255,255,255,.8);
+  --fill:1.34s cubic-bezier(.45,.05,.2,1);
   --hd:"Inter Display","Inter",system-ui,sans-serif;--bd:"Geist",system-ui,sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:#fff;font-family:var(--bd);font-weight:400;
@@ -36,13 +37,18 @@ svg{display:block}
 .btn{display:inline-block;height:36px;line-height:36px;padding:0 14px;border-radius:100px;background:var(--pink);color:#fff;font-size:14px;white-space:nowrap;transition:background-color .35s ease}
 .btn:hover,.btn:focus-visible{background:var(--pink2)}   /* + its label scrambles (see script) */
 
-/* ── icon hover (social icons, tool icons), same language as the button: the fill darkens and the icon flickers
-      through ASCII glyphs before it settles back (see script) ── */
-.soc a,.tool{position:relative;transition:background-color .35s ease}
-.soc a:hover,.soc a:focus-visible{background:rgba(255,255,255,.18)}
-.tip:hover .tool,.tip:focus-visible .tool{background:rgba(134,82,255,.34)}   /* colour change + the tooltip: no ASCII on these */
-.gl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:13px "Geist Mono",ui-monospace,monospace;pointer-events:none}
+/* ── icon hover (social + tool icons): a white wave rises behind the icon while the icon turns purple; before it returns, the icon
+      dissolves into tiny scrambling ASCII that settles into its own shape (see script). GPU-only: translate + transform ── */
+.soc a,.tool{position:relative;overflow:hidden;isolation:isolate;transform:translateZ(0);transition:color .35s ease .47s}
+.soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0/33.3333% 14px,linear-gradient(#fff,#fff) 0 12px/100% calc(100% - 12px) no-repeat;
+  translate:0 0;transition:translate var(--fill) .08s;animation:wv 1.5s linear infinite}
+.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
+.soc a:hover,.soc a:active,.tip:hover .tool{color:var(--pink)}
+@keyframes wv{to{transform:translateX(-33.3333%)}}
+.soc a svg,.tool svg{transition:opacity .25s ease}
 .scr svg{opacity:0}
+.ic{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 
 /* text links and the button scramble on hover (see script); the width is held so nothing shifts */
 .links a{width:max-content;white-space:nowrap}
@@ -161,8 +167,8 @@ svg{display:block}
   .ar{width:96px;height:96px}
   /* touch sizes: no hover effects on the button, icons and text links */
   .btn:hover{background:var(--pink)}
-  .soc a:hover{background:rgba(255,255,255,.3)}
-  .tip:hover .tool{background:rgba(255,255,255,.05)}
+  .soc a::after,.tool::after{display:none}
+  .soc a:hover,.soc a:active,.tip:hover .tool{color:#fff}
   .tip>i,.ar .a2{display:none}
   .arrow:hover .a1,.arrow:focus-visible .a1{transform:none}
 }
@@ -234,7 +240,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={surface:'keep',lighten:.45,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
+const ASCII_DEF={surface:'keep',lighten:.45,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.15,bgTint:'white'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -333,18 +339,51 @@ function reveal(root,on){
 }
 
 
+/* icons: tiny scrambling ASCII that settles into the icon's own shape, then the real icon returns (purple, on the rising white wave) */
+{
+  const GL2='01#*+=:<>/|[]{}',CW=2.6,CH=3.6,T=900;
+  for(const el of $$('.soc a,.tip')){
+    const box=el.classList.contains('tip')?$('.tool',el):el;let cv=null,raf=0;
+    const stop=()=>{cancelAnimationFrame(raf);raf=0;if(cv){cv.remove();cv=null}box.classList.remove('scr')};
+    el.addEventListener('pointerenter',()=>{
+      if(TOUCH.matches||CALM.matches||raf)return;
+      const R=box.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1),cols=Math.ceil(R.width/CW),rows=Math.ceil(R.height/CH),m=document.createElement('canvas');
+      m.width=cols;m.height=rows;const mx=m.getContext('2d');mx.scale(1/CW,1/CH);mx.fillStyle='#000';
+      for(const sv of $$('svg',box)){   /* the icon's shape, rasterised to tiny cells */
+        const r=sv.getBoundingClientRect(),S=Ascii.sym[$('use',sv).getAttribute('href').slice(1)];
+        mx.save();mx.translate(r.left-R.left,r.top-R.top);mx.scale(r.width/S.vb.width,r.height/S.vb.height);for(const q of S.d)mx.fill(q);mx.restore();
+      }
+      const cov=mx.getImageData(0,0,cols,rows).data,cells=[];
+      for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)if(cov[(j*cols+i)*4+3]>100)cells.push([i,j,'#%@&8WM$'[(i*7+j*3)%8],120+Math.random()*T*.55]);   /* each cell settles at its own moment */
+      if(!cells.length)return;
+      cv=document.createElement('canvas');cv.className='ic';cv.width=R.width*d;cv.height=R.height*d;box.append(cv);box.classList.add('scr');
+      const c=cv.getContext('2d'),cur=cells.map(()=>' '),t0=performance.now();let last=0;
+      c.scale(d,d);c.font=`${CH*.95}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
+      const f=now=>{
+        const t=now-t0;if(t>T)return stop();
+        if(now-last>50){last=now;cells.forEach((q,k)=>cur[k]=t<q[3]?GL2[(Math.random()*GL2.length)|0]:q[2])}   /* scrambling, then settled */
+        c.clearRect(0,0,R.width,R.height);c.fillStyle=getComputedStyle(box).color;   /* follows the icon colour as it turns purple */
+        cells.forEach((q,k)=>c.fillText(cur[k],q[0]*CW,q[1]*CH));
+        raf=requestAnimationFrame(f);
+      };
+      raf=requestAnimationFrame(f);
+    });
+    el.addEventListener('pointerleave',stop);
+  }
+  /* the wave's crests run forwards while it rises and backwards while it drains (compositor-only) */
+  for(const el of $$('.soc a,.tip')){
+    let a=null;
+    const anim=()=>a||=el.getAnimations({subtree:true}).find(x=>x.animationName==='wv');
+    const on=()=>{const x=anim();if(!x)return;x.playbackRate=1;x.play()};
+    const off=()=>{const x=anim();if(!x)return;x.currentTime+=x.effect.getTiming().duration*1e3;x.playbackRate=-1};   /* room to run backwards without finishing */
+    el.addEventListener('pointerenter',on);el.addEventListener('pointerleave',off);el.addEventListener('focus',on);el.addEventListener('blur',off);
+  }
+}
+
 /* text links and the button: letters scramble through ASCII glyphs and resolve back to text, left to right.
-   Icons: the glyph flickers through ASCII for a moment, then the icon returns. Off on touch sizes and for reduced motion */
+   Off on touch sizes and for reduced motion */
 {
   const GL=SETS.join('')+NOISE,rnd=()=>GL[(Math.random()*GL.length)|0];
-  for(const el of $$('.soc a')){
-    const gl=document.createElement('b');gl.className='gl';gl.setAttribute('aria-hidden','true');let id=0;
-    (el.closest('.tip')||el).addEventListener('pointerenter',()=>{
-      if(TOUCH.matches||CALM.matches||id)return;
-      const t0=performance.now();el.classList.add('scr');el.append(gl);
-      id=setInterval(()=>{if(performance.now()-t0>420){clearInterval(id);id=0;gl.remove();el.classList.remove('scr')}else gl.textContent=rnd()+rnd()},45);
-    });
-  }
   for(const el of $$('.links a,.btn')){
     const txt=el.dataset.txt=el.textContent;let raf=0;if(!el.hasAttribute('aria-label'))el.setAttribute('aria-label',txt);   /* screen readers never hear the scramble */
     const run=()=>{
@@ -374,7 +413,7 @@ const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
   cw:6,ch:10,p:null,on:false,trail:[],coarse:false,cfg:{...ASCII_DEF},
   init(){
-    this.cv=$('#ascii');this.cx=this.cv.getContext('2d');
+    this.cv=$('#ascii');this.cx=this.cv.getContext('2d');this.nav=$('.clock');
     this.sc=document.createElement('canvas');this.sx=this.sc.getContext('2d',{willReadFrequently:true});
     try{Object.assign(this.cfg,JSON.parse(localStorage.getItem('ascii-cfg')||'{}'))}catch{}
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
@@ -459,7 +498,7 @@ const Ascii={
       for(const mono of [0,1]){
         s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(x0,y0+mono*rows,w,h);
         s.setTransform(1/cw,0,0,1/ch,0,mono*rows);s.textBaseline='middle';
-        this.paint($('#pin'),s,box,false,mono);this.paint($('.clock'),s,box,false,mono);
+        this.paint($('#pin'),s,box,false,mono);
       }
       S=this.snap={i0:x0,j0:y0,w,h,st,n:0,box,px:s.getImageData(x0,y0,w,h).data,cv:s.getImageData(x0,y0+rows,w,h).data};
     }
@@ -471,7 +510,14 @@ const Ascii={
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
       const keep=!pix&&C.surface==='keep'&&A>=.06&&Math.max(px[o],px[o+1],px[o+2])-Math.min(px[o],px[o+1],px[o+2])>60;   /* a coloured surface (purple footer, a work) keeps its colour under the characters */
-      c.globalAlpha=smooth(m0,m1,v)*(1-C.under);c.fillStyle=keep?`rgb(${px[o]},${px[o+1]},${px[o+2]})`:'#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
+      let surf=keep?`rgb(${px[o]},${px[o+1]},${px[o+2]})`:null;
+      if(!keep&&!pix&&C.surface==='keep'&&A>=.06&&(px[o]*.3+px[o+1]*.59+px[o+2]*.11)>140){   /* bright text: find the coloured surface it sits on, a few cells around */
+        let best=60,bi=-1;
+        for(let dj=-3;dj<=3;dj++)for(let di=-3;di<=3;di++){const ii=i+di,jj=j+dj;if(ii<S.i0||jj<S.j0||ii>=S.i0+S.w||jj>=S.j0+S.h)continue;
+          const q=((jj-S.j0)*S.w+ii-S.i0)*4,ch2=Math.max(px[q],px[q+1],px[q+2])-Math.min(px[q],px[q+1],px[q+2]);if(ch2>best&&cv[q]>200){best=ch2;bi=q}}
+        if(bi>=0)surf=`rgb(${px[bi]},${px[bi+1]},${px[bi+2]})`;
+      }
+      c.globalAlpha=smooth(m0,m1,v)*(1-C.under);c.fillStyle=surf||'#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06){
         if(C.bg&&C.bgAmt>0&&mix(i,j,3)%100<C.bgDensity*100){   /* nothing here: a faint scatter of glyphs still shows what the lens reveals (only a share of the cells, to stay light) */
           const bs=C.bgScale,bv=C.bgSpeed,n=.5+.5*Math.sin(i*.31/bs+tk*.35*bv)*Math.cos(j*.23/bs-tk*.27*bv),g=SET[clamp((n*3)|0,0,2)];
@@ -496,6 +542,8 @@ const Ascii={
       c.globalAlpha=smooth(g0,g1,v)*C.alpha;c.fillStyle=`rgb(${clamp(cr,0,255)|0},${clamp(cg,0,255)|0},${clamp(cb,0,255)|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);
     }
     c.globalAlpha=1;this.drawn=[i0*cw,j0*ch,(i1-i0+1)*cw,(j1-j0+1)*ch];
+    const nv=this.nav.getBoundingClientRect();   /* the navbar is always on top: the lens passes beneath it */
+    if(hit(nv,S.box)){c.save();c.beginPath();c.roundRect(nv.left,nv.top,nv.width,nv.height,nv.height/2);c.clip();c.clearRect(nv.left,nv.top,nv.width,nv.height);c.restore()}
   }
 };
 
@@ -684,6 +732,11 @@ const Panel={
     const open=on=>{ap.classList.toggle('open',on);btn.setAttribute('aria-expanded',on)};
     btn.addEventListener('click',()=>open(!ap.classList.contains('open')));
     addEventListener('keydown',e=>{if(e.key==='Escape')open(false)});
+    /* hidden for visitors; the owner brings it back with ?fx / #fx in the URL, Alt+Shift+F, or three quick clicks on the clock */
+    btn.hidden=!/[?&#]fx\b/.test(location.search+location.hash);
+    const toggle=()=>{btn.hidden=!btn.hidden;if(btn.hidden)open(false)};
+    addEventListener('keydown',e=>{if(e.altKey&&e.shiftKey&&e.code==='KeyF')toggle()});
+    let taps=[];$('.tm').addEventListener('click',()=>{const n=performance.now();taps=taps.filter(t=>n-t<900);taps.push(n);if(taps.length>=3){taps=[];toggle()}});
   }
 };
 
