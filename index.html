@@ -415,7 +415,7 @@ const Ascii={
   init(){
     this.cv=$('#ascii');this.cx=this.cv.getContext('2d');this.nav=$('.clock');
     this.sc=document.createElement('canvas');this.sx=this.sc.getContext('2d',{willReadFrequently:true});
-    try{Object.assign(this.cfg,JSON.parse(localStorage.getItem('ascii-cfg')||'{}'))}catch{}
+    try{const sv=JSON.parse(localStorage.getItem('ascii-cfg')||'{}');if('soft' in sv){if(!('edge' in sv))sv.edge=1-sv.soft;delete sv.soft}Object.assign(this.cfg,sv)}catch{}   /* settings saved by the first panel used "soft": the same thing, inverted */
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
     const at=(x,y)=>{if(this.cfg.on&&!page.classList.contains('loading')&&!CALM.matches){this.p={x,y};this.mt=performance.now()}},off=()=>{this.p=null};
