@@ -40,7 +40,7 @@ svg{display:block}
       through ASCII glyphs before it settles back (see script) ── */
 .soc a,.tool{position:relative;transition:background-color .35s ease}
 .soc a:hover,.soc a:focus-visible{background:rgba(255,255,255,.18)}
-.tip:hover .tool,.tip:focus-visible .tool{background:rgba(255,255,255,.02)}
+.tip:hover .tool,.tip:focus-visible .tool{background:rgba(134,82,255,.34)}   /* colour change + the tooltip: no ASCII on these */
 .gl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:13px "Geist Mono",ui-monospace,monospace;pointer-events:none}
 .scr svg{opacity:0}
 
@@ -234,7 +234,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
+const ASCII_DEF={surface:'keep',lighten:.45,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:.25,tailCurve:.8,tailFade:.6,rest:90,hold:false,yieldTo:true,boost:1.5,under:0,touchOff:.7,perf:true,rimWidth:.5,bias:0,contrast:1,sat:1,bright:1,hueSpeed:1,bgDensity:.4,bgScale:1,bgSpeed:1,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -308,18 +308,18 @@ function reveal(root,on){
   });
 }
 
-/* sneak-peek box: the current work closes towards the left while the next one opens from the right, sweeping right → left.
-   The next one starts while the first is still closing, but always stays behind its edge: they never overlap, and there is no gap or pop */
+/* sneak-peek box: a wipe from right to left. The current work closes towards the left while the next one opens from the right,
+   at the same time, on the same curve: the next one's left edge is always exactly the current one's right edge, so there is no gap, no overlap and nothing pops */
 {
   const box=$('#box');let ci=0;box.innerHTML=`<i style="background:${COLORS[0]}"></i>`;
   setInterval(()=>{
     if(document.hidden||page.scrollTop>20||page.classList.contains('loading'))return;
     ci=(ci+1)%COLORS.length;
     const old=box.lastElementChild,n=document.createElement('i'),r=getComputedStyle(box).borderTopLeftRadius,
-      cut=(l,rt)=>`inset(0 ${rt}% 0 ${l}% round ${r})`;
-    n.style.background=COLORS[ci];n.style.clipPath=cut(100,0);box.append(n);   /* waits, closed, at the right edge */
-    old.animate([{clipPath:cut(0,0)},{clipPath:cut(0,100)}],{duration:640,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'}).onfinish=()=>old.remove();
-    n.animate([{clipPath:cut(100,0)},{clipPath:cut(0,0)}],{duration:780,delay:360,easing:'cubic-bezier(.3,.7,.3,1)'}).onfinish=()=>{n.style.clipPath=''};
+      cut=(l,rt)=>`inset(0 ${rt}% 0 ${l}% round ${r})`,o={duration:900,easing:'cubic-bezier(.65,0,.35,1)'};
+    n.style.background=COLORS[ci];n.style.clipPath=cut(100,0);box.append(n);
+    old.animate([{clipPath:cut(0,0)},{clipPath:cut(0,100)}],{...o,fill:'forwards'}).onfinish=()=>old.remove();
+    n.animate([{clipPath:cut(100,0)},{clipPath:cut(0,0)}],o).onfinish=()=>{n.style.clipPath=''};
   },2800);
 }
 
@@ -328,7 +328,7 @@ function reveal(root,on){
    Icons: the glyph flickers through ASCII for a moment, then the icon returns. Off on touch sizes and for reduced motion */
 {
   const GL=SETS.join('')+NOISE,rnd=()=>GL[(Math.random()*GL.length)|0];
-  for(const el of $$('.soc a,.tip .tool')){
+  for(const el of $$('.soc a')){
     const gl=document.createElement('b');gl.className='gl';gl.setAttribute('aria-hidden','true');let id=0;
     (el.closest('.tip')||el).addEventListener('pointerenter',()=>{
       if(TOUCH.matches||CALM.matches||id)return;
@@ -360,7 +360,7 @@ function reveal(root,on){
       blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Thin strokes pick
       denser glyphs so small text stays readable. ── */
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
-const HOT='a,[role=button],.tip';   /* interactive things: the lens yields to them */
+const HOT='a,.tip';   /* links, buttons and the tool icons: the lens yields to them (the big "Selected ( ) Works" row is not one: it converts) */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
   cw:6,ch:10,p:null,on:false,trail:[],coarse:false,cfg:{...ASCII_DEF},
@@ -406,6 +406,12 @@ const Ascii={
     const cs=getComputedStyle(el),r=el.getBoundingClientRect();
     if(el===O.fp)r.y+=O.fcut;   /* the footer is uncovered from the bottom up */
     s.save();
+    const cp=cs.clipPath.match(/^inset\(([^)]*)\)/);   /* a work sliding through the hero box is clipped: the lens sees only what is visible */
+    if(cp&&el!==O.fp){   /* (the footer panel has its own wipe, handled above) */
+      const [sd,rd]=cp[1].split(' round '),v=sd.trim().split(/\s+/),[t,rt,bt,l]=[v[0],v[1]??v[0],v[2]??v[0],v[3]??v[1]??v[0]].map((x,k)=>x.endsWith('%')?parseFloat(x)/100*(k%2?r.width:r.height):parseFloat(x)),   /* CSS shorthand: 1 to 4 values */
+        w=Math.max(0,r.width-l-rt),h=Math.max(0,r.height-t-bt);
+      s.beginPath();s.roundRect(r.left+l,r.top+t,w,h,Math.min(parseFloat(rd)||0,w/2,h/2));s.clip();
+    }
     if(clip&&(cs.overflow==='hidden'||el===O.fp)){if(!hit(r,box)){s.restore();return}s.beginPath();s.rect(r.left,r.top,r.width,r.height);s.clip()}
     if(el.tagName==='IMG'){s.beginPath();s.ellipse(r.left+r.width/2,r.top+r.height/2,r.width/2,r.height/2,0,0,7);if(mono){s.fillStyle='#fff';s.fill()}else{s.clip();s.drawImage(el,r.left,r.top,r.width,r.height)}}
     else if(el.tagName==='svg'){
@@ -436,7 +442,7 @@ const Ascii={
     }
     let i0=cols,j0=this.rows,i1=-1,j1=-1;
     for(let j=u[1];j<=u[3];j++)for(let i=u[0],k=j*cols+i;i<=u[2];i++,k++){
-      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?C.rise:C.fall);t[k]=0;   /* quick in (no lag behind the cursor), soft out */
+      const v=a[k]+(t[k]-a[k])*(t[k]>a[k]?C.rise:away?Math.max(C.fall,.5):C.fall);t[k]=0;   /* quick in (no lag behind the cursor), soft out */
       a[k]=v<.01?0:v;if(a[k]){if(i<i0)i0=i;if(i>i1)i1=i;if(j<j0)j0=j;if(j>j1)j1=j}
     }
     const c=this.cx,d=this.dpr,o0=this.drawn;c.setTransform(1,0,0,1,0,0);
@@ -461,7 +467,8 @@ const Ascii={
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
-      c.globalAlpha=smooth(m0,m1,v)*(1-C.under);c.fillStyle='#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
+      const keep=!pix&&C.surface==='keep'&&A>=.06&&Math.max(px[o],px[o+1],px[o+2])-Math.min(px[o],px[o+1],px[o+2])>60;   /* a coloured surface (purple footer, a work) keeps its colour under the characters */
+      c.globalAlpha=smooth(m0,m1,v)*(1-C.under);c.fillStyle=keep?`rgb(${px[o]},${px[o+1]},${px[o+2]})`:'#0e0e10';c.fillRect(i*cw,j*ch,cw,ch);   /* the cell hides the real design */
       if(A<.06){
         if(C.bg&&C.bgAmt>0&&mix(i,j,3)%100<C.bgDensity*100){   /* nothing here: a faint scatter of glyphs still shows what the lens reveals (only a share of the cells, to stay light) */
           const bs=C.bgScale,bv=C.bgSpeed,n=.5+.5*Math.sin(i*.31/bs+tk*.35*bv)*Math.cos(j*.23/bs-tk*.27*bv),g=SET[clamp((n*3)|0,0,2)];
@@ -480,7 +487,9 @@ const Ascii={
       const set=SET[clamp(Math.round(clamp(((.65*Math.min(1,A*C.boost)+.35*L)-.5)*C.contrast+.5+C.bias,0,1)*6)-1,0,5)],gl=rim?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];   /* a different glyph per cell, each changing now and then */
       let cr=R,cg=G,cb=B;
       if(C.sat!==1||C.bright!==1){const y=.3*R+.59*G+.11*B;cr=(y+(R-y)*C.sat)*C.bright;cg=(y+(G-y)*C.sat)*C.bright;cb=(y+(B-y)*C.sat)*C.bright}
+      if(C.lift>0){const y=(.3*cr+.59*cg+.11*cb)/255;if(y<C.lift){const f=Math.min(8,C.lift/Math.max(y,.03));cr*=f;cg*=f;cb*=f}}   /* very dark surfaces: lifted so they still read */
       if(C.color!=='original'){const T=tint(C.color,L,i,j,ht,R,G,B);cr=lerp(cr,T[0],C.colorAmt);cg=lerp(cg,T[1],C.colorAmt);cb=lerp(cb,T[2],C.colorAmt)}
+      if(keep){cr=lerp(cr,255,C.lighten);cg=lerp(cg,255,C.lighten);cb=lerp(cb,255,C.lighten)}   /* ...and the characters sit on it in a lighter shade of it */
       c.globalAlpha=smooth(g0,g1,v)*C.alpha;c.fillStyle=`rgb(${clamp(cr,0,255)|0},${clamp(cg,0,255)|0},${clamp(cb,0,255)|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);
     }
     c.globalAlpha=1;this.drawn=[i0*cw,j0*ch,(i1-i0+1)*cw,(j1-j0+1)*ch];
@@ -599,6 +608,8 @@ const Panel={
       Rg('boost','Text legibility','Pushes thin strokes (small text) toward denser characters so they stay readable.','',1,3,.05),
       Rg('under','Original visibility','How much of the original design still shows through beneath the characters.','',0,1,.05),
       Rg('touchOff','Touch offset','On phones, how far above the finger the lens sits (times the radius), so the finger does not cover it.','',0,1.5,.05),
+      Sl('surface','Coloured surfaces','Keep: a coloured surface stays its own colour and the characters appear lighter on top. Dark: it turns dark and the characters keep their colour.',['keep','dark']),
+      Rg('lighten','Characters lightening','On a kept surface, how much lighter the characters are than the surface itself.','',0,1,.01),
       Tg('perf','Auto performance mode','Switches to coarser cells automatically if frames start running late.')]],
     ['Glyphs','The characters the design is rebuilt from.',[
       Rg('cw','Glyph size','Size of each character.','px',4,14,1),
@@ -619,6 +630,7 @@ const Panel={
       Rg('colorAmt','Effect strength','How much of the effect is mixed over the original colour.','',0,1,.05),
       Rg('sat','Saturation','Boosts or drains the original colours before any effect.','',0,2,.05),
       Rg('bright','Brightness','Makes the characters brighter or dimmer.','',.5,1.5,.05),
+      Rg('lift','Dark surface lift','Brightens very dark surfaces (like the navbar) so their characters stay visible.','',0,.6,.01),
       Rg('hueSpeed','Rainbow speed','How fast the rainbow effect cycles.','',0,4,.05),
       Rg('alpha','Opacity','How solid the characters are.','',.2,1,.05)]],
     ['Background','A faint field of characters shown where there is nothing to convert.',[
