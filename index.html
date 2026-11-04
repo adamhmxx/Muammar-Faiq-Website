@@ -408,7 +408,7 @@ function reveal(root,on){
       blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Thin strokes pick
       denser glyphs so small text stays readable. ── */
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
-const HOT='a,.tip';   /* links, buttons and the tool icons: the lens yields to them (the big "Selected ( ) Works" row is not one: it converts) */
+const HOT='a:not(.arrow),.tip';   /* links, buttons and the tool icons: the lens yields to them (the big "Selected ( ) Works" row is not one: it converts) */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
 const Ascii={
   cw:6,ch:10,p:null,on:false,trail:[],coarse:false,cfg:{...ASCII_DEF},
@@ -419,7 +419,7 @@ const Ascii={
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
     const at=(x,y)=>{if(this.cfg.on&&!page.classList.contains('loading')&&!CALM.matches){this.p={x,y};this.mt=performance.now()}},off=()=>{this.p=null};
-    addEventListener('pointermove',e=>{const t=e.target,ui=t.closest('#ap,#apb');this.over=!ui&&!!t.closest(HOT);ui?off():at(e.clientX,e.clientY)},{passive:true});
+    addEventListener('pointermove',e=>{const t=e.target,ui=t.closest('#ap,#apb');this.over=!ui&&!!t.closest(HOT);this.fast=!!t.closest('.arrow');ui?off():at(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',off);
     /* touch: the lens sits above the finger, where it can be seen */
     addEventListener('touchstart',e=>{if(e.target.closest('#ap,#apb'))return;this.over=!!e.target.closest(HOT);const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY-this.cfg.R*this.cfg.touchOff)},{passive:true});
@@ -492,7 +492,7 @@ const Ascii={
     this.on=i1>=0;if(!this.on){this.bb=this.drawn=this.snap=null;return}   /* all faded: sleep */
     this.bb=[i0,j0,i1,j1];
     let S=this.snap;const st=page.scrollTop;
-    if(!S||st!==S.st||++S.n>2||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
+    if(!S||st!==S.st||++S.n>(this.fast?0:2)||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
       const x0=Math.max(0,i0-10),y0=Math.max(0,j0-7),w=Math.min(cols,i1+11)-x0,h=Math.min(this.rows,j1+8)-y0,s=this.sx,rows=this.rows;
       const box={left:x0*cw,top:y0*ch,right:(x0+w)*cw,bottom:(y0+h)*ch};
       for(const mono of [0,1]){
