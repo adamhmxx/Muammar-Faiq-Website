@@ -96,8 +96,19 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
     </section>
 
     <section>
+      <h2>Search &amp; sharing</h2>
+      <p class="hint">The page title, description and share image shown in browser tabs, search results and link previews. Saving rewrites the head of <code>index.html</code> too, since crawlers do not run scripts.</p>
+      <label><span>Page title</span><input data-q="title" type="text"></label>
+      <label><span>Description</span><textarea data-q="description" style="min-height:70px"></textarea></label>
+      <div class="row">
+        <label><span>Site address (for the share image link)</span><input data-q="url" type="url" placeholder="https://your-site.com"></label>
+        <label><span>Share image (1200×630)</span><input id="shareimg" type="file" accept="image/*"><small id="sharenote" style="display:block;color:var(--mut);font-size:11px;margin-top:3px"></small></label>
+      </div>
+    </section>
+
+    <section>
       <h2>Works</h2>
-      <p class="hint">Videos are 4:3. Cards autoplay, so keep files light. The hero loop is a short clip (about 3 s) shown in the hero box and loader; without one the main video is used.</p>
+      <p class="hint">Videos are 4:3. A link is optional: with one, the card is clickable and opens it in a new tab. Cards autoplay, so keep files light. The hero loop is a short clip (about 3 s) shown in the hero box and loader; without one the main video is used.</p>
       <div id="works"></div>
       <button id="add">+ Add work</button>
     </section>
@@ -111,7 +122,7 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a))n==='class'?e.className=v:n.startsWith('on')?e.addEventListener(n.slice(2),v):v!=null&&e.setAttribute(n,v);e.append(...k);return e};
 const API='https://api.github.com';
-let data=null,sha=null,orig=new Set(),dirty=false,pending=new Map(),urls=new Map();   /* pending: repo path → Blob waiting to be uploaded */
+let data=null,sha=null,seo0='',orig=new Set(),dirty=false,pending=new Map(),urls=new Map();   /* pending: repo path → Blob waiting to be uploaded */
 
 const say=(t,c='')=>{const m=$('#msg');m.textContent=t;m.className=c};
 const store=()=>$('#remember').checked?localStorage:sessionStorage;
@@ -138,7 +149,8 @@ async function load(){
     catch(e){if(e.status!==404)throw e;const r=await fetch('content.json');data=await r.json();sha=null}   /* first save: start from the site's own copy */
     store().setItem('adm',JSON.stringify({repo,br,tk}));
     (store()===localStorage?sessionStorage:localStorage).removeItem('adm');
-    orig=new Set(data.works.flatMap(w=>[w.video,w.hero,w.poster]).filter(p=>p&&p.startsWith('assets/')));
+    data.seo={title:'',description:'',image:'',url:'',...data.seo};seo0=JSON.stringify(data.seo);
+    orig=new Set([...data.works.flatMap(w=>[w.video,w.hero,w.poster]),data.seo.image].filter(p=>p&&p.startsWith('assets/')));
     pending.clear();dirty=false;fill();
     $('#login').classList.add('hide');$('#editor').classList.remove('hide');$('#bar').classList.remove('hide');$('#save').disabled=true;say('Loaded '+repo);
   }catch(e){say(e.status===401?'The token was rejected.':e.status===404?'Repository or branch not found (check the token covers it).':e.message,'bad')}
@@ -149,6 +161,9 @@ async function load(){
 function fill(){
   for(const i of $$('[data-k]'))i.value=data[i.dataset.k]??'';
   for(const i of $$('[data-s]'))i.value=data.socials?.[i.dataset.s]??'';
+  data.seo={title:'',description:'',image:'',url:'',...data.seo};
+  for(const i of $$('[data-q]'))i.value=data.seo[i.dataset.q];
+  $('#sharenote').textContent=data.seo.image.replace(/^assets\//,'');
   renderWorks();
 }
 const path=(kind,ext)=>`assets/${kind}-${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}.${ext}`;
@@ -175,10 +190,17 @@ function renderWorks(){
         h('label',{},h('span',{},`Title · work ${i+1}`),h('input',{type:'text',value:w.title||'',oninput:e=>set('title',e.target.value)})),
         h('label',{},h('span',{},'Year'),h('input',{type:'text',value:w.year||'',oninput:e=>set('year',e.target.value)})),
         h('label',{},h('span',{},'Colour'),h('input',{type:'color',value:/^#[0-9a-f]{6}$/i.test(w.color)?w.color:'#7c4dff',oninput:e=>set('color',e.target.value)}))),
+      h('label',{style:'margin-top:10px'},h('span',{},'Link (optional)'),h('input',{type:'url',placeholder:'https://',value:w.link||'',oninput:e=>set('link',e.target.value.trim())})),
       h('div',{class:'files'},file('Poster image','poster','image/*','poster'),file('Video (4:3)','video','video/mp4,video/webm','work'),file('Hero loop (~3 s)','hero','video/mp4,video/webm','hero')),
       h('div',{class:'acts'},h('button',{type:'button',onclick:mv(-1),disabled:i===0?'':null,'aria-label':'Move up'},'↑'),h('button',{type:'button',onclick:mv(1),disabled:i===data.works.length-1?'':null,'aria-label':'Move down'},'↓'),
         h('button',{type:'button',class:'del',onclick:()=>{if(data.works.length<2)return say('Keep at least one work.','bad');if(!confirm(`Delete “${w.title||'Untitled'}”? Its files are removed on save.`))return;data.works.splice(i,1);renderWorks();mark()}},'Delete')))));
   });
+}
+const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function seoBlock(o){   /* the same block build3.py writes */
+  const u=(o.url||'').replace(/\/+$/,''),img=u&&o.image?u+'/'+o.image:o.image||'';
+  return '<!--seo-->\n<title>'+esc(o.title)+'</title>\n<meta name="description" content="'+esc(o.description)+'">\n<meta property="og:type" content="website">\n<meta property="og:title" content="'+esc(o.title)+'">\n<meta property="og:description" content="'+esc(o.description)+'">\n'
+    +(img?'<meta property="og:image" content="'+esc(img)+'">\n<meta name="twitter:card" content="summary_large_image">\n':'')+(u?'<meta property="og:url" content="'+esc(u)+'/">\n':'')+'<link rel="icon" href="assets/favicon.png">\n<!--/seo-->';
 }
 /* poster → 640×480 webp, cover-cropped */
 async function poster(f){
@@ -187,10 +209,18 @@ async function poster(f){
   return new Promise(r=>c.toBlob(r,'image/webp',.72));
 }
 
+$('#shareimg').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const im=await createImageBitmap(f),c=document.createElement('canvas');c.width=1200;c.height=630;
+  const k=Math.max(1200/im.width,630/im.height),w=im.width*k,hh=im.height*k,x=c.getContext('2d');x.fillStyle='#0e0e10';x.fillRect(0,0,1200,630);x.drawImage(im,(1200-w)/2,(630-hh)/2,w,hh);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88)),p=path('share','jpg');blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);
+  data.seo.image=p;$('#sharenote').textContent=p.slice(7);mark();
+});
 $('#add').addEventListener('click',()=>{data.works.push({title:'New project',year:String(new Date().getFullYear()),color:'#7c4dff',video:'',hero:'',poster:''});renderWorks();mark();$('#works').lastElementChild.scrollIntoView({behavior:'smooth',block:'center'})});
 $('#editor').addEventListener('input',e=>{
   const t=e.target;if(t.dataset.k){data[t.dataset.k]=t.value;mark()}
   else if(t.dataset.s){(data.socials||={})[t.dataset.s]=t.value.trim();mark()}
+  else if(t.dataset.q){data.seo[t.dataset.q]=t.value.trim();mark()}
 });
 
 /* ── save: new files first, then content.json, then files no work uses any more ── */
@@ -198,8 +228,10 @@ async function put(p,content,msg,sh){return gh(`/repos/${cfg().repo}/contents/${
 $('#save').addEventListener('click',async()=>{
   for(const w of data.works){if(!w.title?.trim())return say('Every work needs a title.','bad');if(!w.video||!w.poster)return say(`“${w.title}” needs a video and a poster.`,'bad')}
   for(const u of Object.values(data.socials||{}))if(u&&u!=='#'&&!/^https?:\/\//.test(u))return say('Social links must start with https://','bad');
+  for(const w of data.works)if(w.link&&!/^https?:\/\//.test(w.link))return say(`The link of “${w.title}” must start with https://`,'bad');
+  if(data.seo.url&&!/^https?:\/\//.test(data.seo.url))return say('The site address must start with https://','bad');
   if(!/^[^@\s]+@[^@\s]+$/.test(data.email||''))return say('Enter a valid email.','bad');
-  const used=new Set(data.works.flatMap(w=>[w.video,w.hero,w.poster])),gone=[...orig].filter(p=>!used.has(p)),up=[...pending].filter(([p])=>used.has(p));
+  const used=new Set([...data.works.flatMap(w=>[w.video,w.hero,w.poster]),data.seo.image]),gone=[...orig].filter(p=>!used.has(p)),up=[...pending].filter(([p])=>used.has(p));
   if(gone.length&&!confirm(`These files are no longer used and will be deleted:\n\n${gone.join('\n')}`))return;
   const btn=$('#save');btn.disabled=true;
   try{
@@ -207,6 +239,12 @@ $('#save').addEventListener('click',async()=>{
     for(const[p,b]of up){say(`Uploading ${++n}/${up.length}: ${p.slice(7)}…`);await put(p,await blobB64(b),'Add '+p)}
     say('Saving content…');
     const res=await put('content.json',b64(JSON.stringify(data,null,1)+'\n'),'Update content',sha);sha=res.content.sha;
+    if(JSON.stringify(data.seo)!==seo0){   /* crawlers do not run scripts: the tags live in index.html's head */
+      say('Updating index.html head…');
+      const f=await gh(`/repos/${cfg().repo}/contents/index.html?ref=${encodeURIComponent(cfg().br)}`),html=unb64(f.content),blk=seoBlock(data.seo),re=/<!--seo-->[\s\S]*<!--\/seo-->/;
+      if(!re.test(html))throw new Error('index.html has no <!--seo--> block to update.');
+      await put('index.html',b64(html.replace(re,()=>blk)),'Update page title and share tags',f.sha);seo0=JSON.stringify(data.seo);
+    }
     for(const p of gone){try{say('Removing '+p.slice(7)+'…');const f=await gh(`/repos/${cfg().repo}/contents/${enc(p)}?ref=${encodeURIComponent(cfg().br)}`);
       await gh(`/repos/${cfg().repo}/contents/${enc(p)}`,{method:'DELETE',body:JSON.stringify({message:'Remove '+p,sha:f.sha,branch:cfg().br})})}catch{}}
     orig=new Set([...used].filter(p=>p.startsWith('assets/')));pending.clear();dirty=false;

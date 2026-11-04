@@ -10,6 +10,12 @@
   "i-x": "#",
   "i-up": "#"
  },
+ "seo": {
+  "title": "Muammar Faiq — 2D Motion Designer",
+  "description": "2D motion designer specializing in After Effects and Rive. Clean, smooth and lightweight animations for apps, interfaces and digital products.",
+  "image": "assets/share.jpg",
+  "url": ""
+ },
  "works": [
   {
    "title": "Project 01",

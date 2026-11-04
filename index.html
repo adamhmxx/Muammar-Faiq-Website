@@ -3,7 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Muammar Faiq Portfolio</title>
+<!--seo-->
+<title>Muammar Faiq — 2D Motion Designer</title>
+<meta name="description" content="2D motion designer specializing in After Effects and Rive. Clean, smooth and lightweight animations for apps, interfaces and digital products.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muammar Faiq — 2D Motion Designer">
+<meta property="og:description" content="2D motion designer specializing in After Effects and Rive. Clean, smooth and lightweight animations for apps, interfaces and digital products.">
+<meta property="og:image" content="assets/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png">
+<!--/seo-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Geist+Mono:wght@400&family=Inter:opsz,wght@14..32,500&display=swap" rel="stylesheet">
@@ -43,8 +52,8 @@ svg{display:block}
 .soc a::after,.tool::after{content:"";position:absolute;left:0;top:calc(100% + 6px);width:150%;height:calc(100% + 34px);z-index:-1;pointer-events:none;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10Q25 -2 50 10T100 10V20H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0/33.3333% 14px,linear-gradient(#fff,#fff) 0 12px/100% calc(100% - 12px) no-repeat;
   translate:0 0;transition:translate var(--fill) .08s;animation:wv 1.5s linear infinite}
-.soc a:hover::after,.soc a:active::after,.tip:hover .tool::after{translate:0 -100%}
-.soc a:hover,.soc a:active,.tip:hover .tool{color:#000}
+.soc a:hover::after,.soc a:active::after,.soc a:focus-visible::after,.tip:hover .tool::after,.tip:focus-within .tool::after{translate:0 -100%}
+.soc a:hover,.soc a:active,.soc a:focus-visible,.tip:hover .tool,.tip:focus-within .tool{color:#000}
 @keyframes wv{to{transform:translateX(-33.3333%)}}
 .soc a svg,.tool svg{transition:opacity .25s ease}
 .scr svg{opacity:0}
@@ -70,6 +79,12 @@ svg{display:block}
 .card .thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .meta{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:16px;letter-spacing:-.01em}
 .meta span{color:rgba(255,255,255,.7)}
+a.card{display:block;color:inherit;pointer-events:auto;cursor:pointer}
+.card .thumb i,.card .thumb video{transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.card .go{width:14px;height:14px;margin-left:8px;flex:none;opacity:0;translate:-6px 6px;transition:opacity .35s ease,translate .5s cubic-bezier(.16,1,.3,1)}
+.meta h3{display:flex;align-items:center;margin:0}
+a.card:hover .thumb i,a.card:hover .thumb video,a.card:focus-visible .thumb i,a.card:focus-visible .thumb video{transform:scale(1.04)}
+a.card:hover .go,a.card:focus-visible .go{opacity:1;translate:0 0}
 .intro{position:absolute;z-index:3;left:50%;top:16.9%;width:53.7%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}
 .intro img{border-radius:50%}
 .hi{font-size:16px;color:var(--dim)}
@@ -79,7 +94,7 @@ svg{display:block}
   font-size:48px;letter-spacing:-.02em;cursor:pointer}
 .row .par{color:var(--tx)}
 .box{position:relative;width:var(--bw);height:var(--bh);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-.row:hover .box{transform:scale(1.05)}
+.row:hover .box,.row:focus-visible .box{transform:scale(1.05)}
 .box i{position:absolute;inset:0;border-radius:16px;overflow:hidden}
 .box i video,.lg i video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 
@@ -147,11 +162,6 @@ svg{display:block}
 #ap .acts{display:flex;gap:8px;margin-top:16px}
 #ap button{flex:1;height:30px;border:0;border-radius:100px;background:#262629;color:#fff;font:inherit;cursor:pointer;transition:background-color .3s ease}
 #ap button:hover{background:#303034}
-#ap .tabs{display:flex;gap:4px;padding:3px;border-radius:100px;background:#262629}
-#ap .tabs button{height:26px;background:transparent;color:var(--dim)}
-#ap .tabs button:hover{background:rgba(255,255,255,.06)}
-#ap .tabs button[aria-selected=true]{background:var(--pink);color:#fff}
-#ap[data-mode=ascii] [data-for=pixel],#ap[data-mode=pixel] [data-for=ascii]{display:none}
 #page.loading ~ #apb,#page.loading ~ #ap{display:none}
 @media (max-width:640px){body.end #apb[aria-expanded=false]{opacity:0;pointer-events:none}}   /* phones: the chip would sit on the footer title */
 
@@ -178,7 +188,7 @@ svg{display:block}
   /* touch sizes: no hover effects on the button, icons and text links */
   .btn:hover{background:var(--pink)}
   .soc a::after,.tool::after{display:none}
-  .soc a:hover,.soc a:active,.tip:hover .tool{color:#fff}
+  .soc a:hover,.soc a:active,.soc a:focus-visible,.tip:hover .tool,.tip:focus-within .tool{color:#fff}
   .tip>i,.ar .a2{display:none}
   .arrow:hover .a1,.arrow:focus-visible .a1{transform:none}
 }
@@ -212,7 +222,7 @@ svg{display:block}
 <canvas id="ascii" aria-hidden="true"></canvas>
 <div class="ld" id="ld" aria-hidden="true"><div class="lg" id="lg"><span class="par hd">(</span><span class="par hd">)</span></div><p class="pct hd" id="pct">0%</p><i class="bar" id="bar"></i></div>
 
-<script type="application/json" id="cms">{"name": "Muammar Faiq", "hi": "Hi, I am Muammar Faiq !", "headline": "2D Motion Designer specializing in After Effects and Rive. I create clean, smooth, and lightweight animations that bring apps, interfaces, and digital products to life.", "email": "hello@muammarfaiq.com", "copy": "© 2026 Muammar Faiq. All rights reserved.", "socials": {"i-li": "#", "i-ig": "#", "i-x": "#", "i-up": "#"}, "works": [{"title": "Project 01", "year": "2025", "color": "#3D5AFE", "video": "assets/work-1.mp4", "hero": "assets/hero-1.mp4", "poster": "assets/poster-1.webp"}, {"title": "Project 02", "year": "2025", "color": "#FF6B35", "video": "assets/work-2.mp4", "hero": "assets/hero-2.mp4", "poster": "assets/poster-2.webp"}, {"title": "Project 03", "year": "2025", "color": "#00C2A8", "video": "assets/work-3.mp4", "hero": "assets/hero-3.mp4", "poster": "assets/poster-3.webp"}, {"title": "Project 04", "year": "2024", "color": "#FFD23F", "video": "assets/work-4.mp4", "hero": "assets/hero-4.mp4", "poster": "assets/poster-4.webp"}, {"title": "Project 05", "year": "2024", "color": "#7C4DFF", "video": "assets/work-5.mp4", "hero": "assets/hero-5.mp4", "poster": "assets/poster-5.webp"}, {"title": "Project 06", "year": "2024", "color": "#FF4081", "video": "assets/work-6.mp4", "hero": "assets/hero-6.mp4", "poster": "assets/poster-6.webp"}, {"title": "Project 07", "year": "2023", "color": "#40C4FF", "video": "assets/work-7.mp4", "hero": "assets/hero-7.mp4", "poster": "assets/poster-7.webp"}, {"title": "Project 08", "year": "2023", "color": "#B2FF59", "video": "assets/work-8.mp4", "hero": "assets/hero-8.mp4", "poster": "assets/poster-8.webp"}, {"title": "Project 09", "year": "2023", "color": "#E21EFF", "video": "assets/work-9.mp4", "hero": "assets/hero-9.mp4", "poster": "assets/poster-9.webp"}, {"title": "Project 10", "year": "2022", "color": "#FF9100", "video": "assets/work-10.mp4", "hero": "assets/hero-10.mp4", "poster": "assets/poster-10.webp"}]}</script>
+<script type="application/json" id="cms">{"name": "Muammar Faiq", "hi": "Hi, I am Muammar Faiq !", "headline": "2D Motion Designer specializing in After Effects and Rive. I create clean, smooth, and lightweight animations that bring apps, interfaces, and digital products to life.", "email": "hello@muammarfaiq.com", "copy": "© 2026 Muammar Faiq. All rights reserved.", "socials": {"i-li": "#", "i-ig": "#", "i-x": "#", "i-up": "#"}, "seo": {"title": "Muammar Faiq — 2D Motion Designer", "description": "2D motion designer specializing in After Effects and Rive. Clean, smooth and lightweight animations for apps, interfaces and digital products.", "image": "assets/share.jpg", "url": ""}, "works": [{"title": "Project 01", "year": "2025", "color": "#3D5AFE", "video": "assets/work-1.mp4", "hero": "assets/hero-1.mp4", "poster": "assets/poster-1.webp"}, {"title": "Project 02", "year": "2025", "color": "#FF6B35", "video": "assets/work-2.mp4", "hero": "assets/hero-2.mp4", "poster": "assets/poster-2.webp"}, {"title": "Project 03", "year": "2025", "color": "#00C2A8", "video": "assets/work-3.mp4", "hero": "assets/hero-3.mp4", "poster": "assets/poster-3.webp"}, {"title": "Project 04", "year": "2024", "color": "#FFD23F", "video": "assets/work-4.mp4", "hero": "assets/hero-4.mp4", "poster": "assets/poster-4.webp"}, {"title": "Project 05", "year": "2024", "color": "#7C4DFF", "video": "assets/work-5.mp4", "hero": "assets/hero-5.mp4", "poster": "assets/poster-5.webp"}, {"title": "Project 06", "year": "2024", "color": "#FF4081", "video": "assets/work-6.mp4", "hero": "assets/hero-6.mp4", "poster": "assets/poster-6.webp"}, {"title": "Project 07", "year": "2023", "color": "#40C4FF", "video": "assets/work-7.mp4", "hero": "assets/hero-7.mp4", "poster": "assets/poster-7.webp"}, {"title": "Project 08", "year": "2023", "color": "#B2FF59", "video": "assets/work-8.mp4", "hero": "assets/hero-8.mp4", "poster": "assets/poster-8.webp"}, {"title": "Project 09", "year": "2023", "color": "#E21EFF", "video": "assets/work-9.mp4", "hero": "assets/hero-9.mp4", "poster": "assets/poster-9.webp"}, {"title": "Project 10", "year": "2022", "color": "#FF9100", "video": "assets/work-10.mp4", "hero": "assets/hero-10.mp4", "poster": "assets/poster-10.webp"}]}</script>
 <main id="page" class="loading">
   <div id="rw">
     <section class="pin" id="pin">
@@ -227,7 +237,7 @@ svg{display:block}
       <div class="row hd" id="row" role="button" tabindex="0" aria-label="Explore selected works"><span>Selected</span><span class="par">(</span><span class="box" id="box"></span><span class="par">)</span><span>Works</span></div>
       <div class="footp" id="footp">
         <footer class="foot" id="foot">
-          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#" data-to="0">Home</a><a data-rv href="#" data-to="1">Works</a><a data-rv href="#" data-to="0">About</a></nav></div>
+          <div class="col c1"><p class="lab" data-rv>Discover</p><nav class="links"><a data-rv href="#" data-to="0">About</a><a data-rv href="#" data-to="1">Works</a><a data-rv href="#" data-to="end">Contact</a></nav></div>
           <div class="col c2"><p class="lab" data-rv>Socials</p><div class="soc" data-rv><a href="#" data-i="i-li" aria-label="LinkedIn"><svg width="16" height="16" aria-hidden="true"><use href="#i-li"/></svg></a><a href="#" data-i="i-ig" aria-label="Instagram"><svg width="16" height="16" aria-hidden="true"><use href="#i-ig"/></svg></a><a href="#" data-i="i-x" aria-label="X"><svg width="18" height="16" aria-hidden="true"><use href="#i-x"/></svg></a><a href="#" data-i="i-up" aria-label="Upwork"><svg width="26" height="16" aria-hidden="true"><use href="#i-up"/></svg></a></div><p class="copy" data-rv>© 2026 Muammar Faiq. All rights reserved.</p></div>
           <div class="end"><h2 class="big hd" data-rv="110">Get in touch.</h2>
           <a class="arrow" href="mailto:hello@muammarfaiq.com" aria-label="Hire me: hello@muammarfaiq.com" data-rv="60"><span class="ar"><svg class="a1" viewBox="0 0 120 120"><use href="#i-arrow"/></svg><svg class="a2" viewBox="0 0 120 120"><use href="#i-arrow"/></svg></span></a></div>
@@ -251,7 +261,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,grey:.55,surface:'keep',lighten:.3,lift:.3,mode:'ascii',px:12,levels:8,gap:0,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
+const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,grey:.55,surface:'keep',lighten:.3,lift:.3,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
 /* ── content (edited in admin.html, saved as content.json; the copy embedded below is the fallback) ── */
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const CMS_P=Promise.race([fetch('content.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null),new Promise(r=>setTimeout(r,2500,null))]);
@@ -264,7 +274,7 @@ const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94],spd=j=>SPD[j%10];
 const GRID=w=>w<=640?{n:4,m:20,g:12,cols:[1,2,1,2,1,2,1,2,1,2],minH:520}      /* mobile */
   :w<=1024?{n:8,m:32,g:16,cols:[1,6,3,4,2,5,1,6,3,4],minH:600}                  /* tablet */
   :{n:12,m:64,g:16,cols:[1,10,4,7,2,9,3,8,5,6],minH:620};                        /* desktop */
-const card=i=>{const w=CMS.works[i];return `<div class="card" style="--c:${esc(w.color||COLORS[i%COLORS.length])}"><div class="thumb"><i data-p="${i}" style="background:${bgp(i)},var(--c)"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video></i></div><div class="meta"><h3 class="hd">${esc(w.title)}</h3><span>${esc(w.year)}</span></div></div>`};
+const card=i=>{const w=CMS.works[i],a=/^https?:\/\//.test(w.link||''),t=a?'a':'div';return `<${t} class="card"${a?` href="${esc(w.link)}" target="_blank" rel="noopener" aria-label="${esc(w.title)}, ${esc(w.year)}"`:''} style="--c:${esc(w.color||COLORS[i%COLORS.length])}"><div class="thumb"><i data-p="${i}" style="background:${bgp(i)},var(--c)"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video></i></div><div class="meta"><h3 class="hd">${esc(w.title)}${a?'<svg class="go" viewBox="0 0 120 120" aria-hidden="true"><use href="#i-arrow"/></svg>':''}</h3><span>${esc(w.year)}</span></div></${t}>`};
 const page=$('#page'),TOUCH=matchMedia('(max-width:1024px)'),CALM=matchMedia('(prefers-reduced-motion:reduce)');
 
 /* live WIB clock (Asia/Jakarta, UTC+7) */
@@ -451,7 +461,7 @@ const heroBox=()=>{
       blob with a tail that shrinks behind the cursor; cells ease in and out, and the rim scrambles. Thin strokes pick
       denser glyphs so small text stays readable. ── */
 const mix=(i,j,t)=>{let h=Math.imul(i,0x9E3779B1)^Math.imul(j,0x85EBCA77)^Math.imul(t,0xC2B2AE3D);h=Math.imul(h^h>>>15,0x2C1B3C6D);return (h^h>>>12)>>>0};   /* integer hash: a stable random per cell and moment */
-const HOT='a:not(.arrow),.tip';   /* links, buttons and the tool icons: the lens yields to them (the big "Selected ( ) Works" row is not one: it converts) */
+const HOT='a:not(.arrow):not(.card),.tip';   /* links, buttons and the tool icons: the lens yields to them (the big "Selected ( ) Works" row is not one: it converts) */
 const cover=(s,src,w,h,r)=>{const k=Math.max(r.width/w,r.height/h),sw=r.width/k,sh=r.height/k;s.drawImage(src,(w-sw)/2,(h-sh)/2,sw,sh,r.left,r.top,r.width,r.height)};   /* object-fit: cover */
 const lum=(r,g,b)=>.3*r+.59*g+.11*b,span=(r,g,b)=>Math.max(r,g,b)-Math.min(r,g,b);   /* luminance and colourfulness of an rgb colour */
 const hit=(r,b)=>r.right>b.left&&r.left<b.right&&r.bottom>b.top&&r.top<b.bottom;
@@ -472,7 +482,7 @@ const Ascii={
     addEventListener('touchend',off,{passive:true});
   },
   size(){
-    const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),pz=this.cfg.mode==='pixel',cw=this.cw=pz?Math.max(3,Math.round(this.cfg.px*(this.coarse?1.35:1))):Math.max(3,gs+this.cfg.ls),ch=this.ch=pz?cw:Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
+    const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),cw=this.cw=Math.max(3,gs+this.cfg.ls),ch=this.ch=Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
     Object.assign(this,{fs:Math.round(gs*1.65)*.95,cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows),bb:null,u:null,drawn:null,snap:null});
     this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* snapshots: colour on top, coverage below */
   },
@@ -557,13 +567,13 @@ const Ascii={
     const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${this.fs}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
     const tk=now/C.speed,ht=now*.1*C.hueSpeed,SET=SETS_BY[C.set]||SETS,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff',
       sm=C.smooth,m0=.05*(1-sm),m1=.45+.5*sm,g0=.08*(1-sm),g1=.5+.45*sm,   /* how gradually cells fade between the lens and the page */
-      ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2,pix=C.mode==='pixel',gp=pix?Math.min(C.gap,(cw-2)/2):0,LV=C.levels|0,QS=255/Math.max(1,LV-1);   /* pixel mode: block gap, colour levels */                      /* glyphs sit centred in their (spaced) cell */
+      ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2;                      /* glyphs sit centred in their (spaced) cell */
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
-      const keep=!pix&&C.surface==='keep'&&A>=.06&&span(px[o],px[o+1],px[o+2])>60;   /* a coloured surface (purple footer, a work) keeps its colour under the characters */
+      const keep=C.surface==='keep'&&A>=.06&&span(px[o],px[o+1],px[o+2])>60;   /* a coloured surface (purple footer, a work) keeps its colour under the characters */
       let surf=keep?`rgb(${px[o]},${px[o+1]},${px[o+2]})`:null;
-      if(!keep&&!pix&&C.surface==='keep'&&A>=.06&&lum(px[o],px[o+1],px[o+2])>140){   /* bright text: find the coloured surface it sits on, a few cells around */
+      if(!keep&&C.surface==='keep'&&A>=.06&&lum(px[o],px[o+1],px[o+2])>140){   /* bright text: find the coloured surface it sits on, a few cells around */
         let best=60,bi=-1;
         for(let dj=-3;dj<=3;dj++)for(let di=-3;di<=3;di++){const ii=i+di,jj=j+dj;if(ii<S.i0||jj<S.j0||ii>=S.i0+S.w||jj>=S.j0+S.h)continue;
           const q=((jj-S.j0)*S.w+ii-S.i0)*4,ch2=span(px[q],px[q+1],px[q+2]);if(ch2>best&&cv[q]>200){best=ch2;bi=q}}
@@ -573,15 +583,9 @@ const Ascii={
       if(A<.06){
         if(C.bg&&C.bgAmt>0&&mix(i,j,3)%100<C.bgDensity*100){   /* nothing here: a faint scatter of glyphs still shows what the lens reveals (only a share of the cells, to stay light) */
           const bs=C.bgScale,bv=C.bgSpeed,n=.5+.5*Math.sin(i*.31/bs+tk*.35*bv)*Math.cos(j*.23/bs-tk*.27*bv),g=SET[clamp((n*3)|0,0,2)];
-          c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;if(pix)c.fillRect(i*cw+gp+1,j*ch+gp+1,cw-2*gp-2,ch-2*gp-2);else c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
+          c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
         }
         continue;
-      }
-      if(pix){   /* pixelated: the cell's own colour as one solid block */
-        let r=px[o],g=px[o+1],bl=px[o+2];
-        if(LV<16){r=Math.round(r/QS)*QS;g=Math.round(g/QS)*QS;bl=Math.round(bl/QS)*QS}
-        if(C.color!=='original'){const T=tint(C.color,lum(r,g,bl)/255,i,j,ht,r,g,bl);r=lerp(r,T[0],C.colorAmt);g=lerp(g,T[1],C.colorAmt);bl=lerp(bl,T[2],C.colorAmt)}
-        c.globalAlpha=smooth(m0,m1,v)*C.alpha;c.fillStyle=`rgb(${r|0},${g|0},${bl|0})`;c.fillRect(i*cw+gp,j*ch+gp,cw-2*gp,ch-2*gp);continue;
       }
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
       const L=lum(R,G,B)/255,rim=v<C.rimWidth&&Math.random()<C.rim*(1-v);
@@ -607,7 +611,7 @@ const O={
   st:-1,us:0,
   init(){
     $('#items').innerHTML=CMS.works.map((_,i)=>card(i)).join('');
-    this.cards=$$('#items .card').map(el=>({el,v:el.querySelector('video'),on:false,loaded:false}));
+    this.cards=$$('#items .card').map(el=>({el,v:el.querySelector('video'),on:false,loaded:false,vis:true}));
     Object.assign(this,{rw:$('#rw'),pin:$('#pin'),row:$('#row'),box:$('#box'),pars:$$('#row .par'),intro:$('#intro'),t:$('#title'),tp:$('#title .tp'),fx:$('#title .fx'),fp:$('#footp'),foot:$('#foot')});
     const go=()=>animateScroll(this.vh,1800);
     this.row.addEventListener('click',go);
@@ -676,7 +680,7 @@ const O={
       const yy=Y0-(this.us-this.s[j])*spd(j)*vh,on=yy<=Y0&&yy>=Y1;
       c.el.style.opacity=on?1:0;
       if(!c.loaded&&yy<=Y0+vh*.3&&yy>=Y1){c.loaded=true;c.v.preload='auto';c.v.src=VIDEOS[j]}   /* fetched just before the card enters */
-      c.vis=on;c.yy=yy;
+      if(on!==c.vis)c.el.inert=!on;c.vis=on;c.yy=yy;
       if(on)c.el.style.transform=`translate3d(0,${yy}px,0)`;
     });
     /* autoplay only while visible; when frames run late, only the 3 works nearest the middle of the screen keep playing */
@@ -693,7 +697,6 @@ const O={
 /* ── Hover FX panel: every lens parameter, live, each with a one-line explanation. Settings are remembered in this browser ── */
 const SHOW_PANEL=false;   /* false: hidden for visitors (?fx, #fx, Alt+Shift+F or three quick clicks on the clock bring it back) */
 const PANEL_SCOPE='all';   /* 'footer': only the footer settings · 'all': the whole Hover FX panel */
-const MODES=['ascii'];   /* add 'pixel' here to bring the pixelated mode (and its tab) back */
 const Tg=(k,l,d)=>({t:'b',k,l,d}),Sl=(k,l,d,o)=>({t:'s',k,l,d,o}),Rg=(k,l,d,u,min,max,st)=>({t:'n',k,l,d,u,min,max,st});
 const PRESETS={
   Default:{},
@@ -745,10 +748,6 @@ const Panel={
       Rg('rimWidth','Rim width','How far in from the border the scrambling zone reaches.','',.1,.9,.05),
       Rg('bias','Density bias','Shifts every character lighter (negative) or denser (positive).','',-.3,.3,.01),
       Rg('contrast','Density contrast','Spreads or squeezes the light-to-dense range. High is punchy, low is flat.','',.5,2,.05)],'ascii'],
-    ['Pixels','The blocks the design is rebuilt from.',[
-      Rg('px','Pixel size','Size of each block.','px',4,40,1),
-      Rg('levels','Colour levels','How many shades per colour. Fewer looks more retro.','',2,16,1),
-      Rg('gap','Block gap','Grid line between blocks.','px',0,6,1)],'pixel'],
     ['Colour','How the converted characters are coloured.',[
       Sl('color','Effect','Recolours the characters. Original keeps the colour of what is underneath.',['original','white','accent','duotone','rainbow','invert']),
       Rg('colorAmt','Effect strength','How much of the effect is mixed over the original colour.','',0,1,.05),
@@ -773,7 +772,6 @@ const Panel={
   },
   build(){
     const C=Ascii.cfg;
-    if(!MODES.includes(C.mode)){C.mode=MODES[0];Ascii.size()}
     const ctl=x=>{const d=`<small>${x.d}</small>`;
       return x.t==='s'?`<label><b>${x.l}</b><select data-k="${x.k}">${x.o.map(o=>`<option>${o}</option>`).join('')}</select>${d}</label>`
         :x.t==='b'?`<label><b>${x.l}</b><input type="checkbox" data-k="${x.k}">${d}</label>`
@@ -781,29 +779,25 @@ const Panel={
     const ap=this.ap=document.createElement('aside'),btn=document.createElement('button');
     const spec=PANEL_SCOPE==='footer'?this.spec.filter(s=>s[4]==='foot'):this.spec,scoped=PANEL_SCOPE==='footer',keys=new Set(spec.flatMap(s=>s[2]).map(x=>x.k));
     ap.id='ap';ap.setAttribute('aria-label',scoped?'Footer settings':'Hover effect settings');btn.id='apb';btn.textContent=scoped?'Footer FX':'Hover FX';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','ap');
-    const tabs=!scoped&&MODES.length>1?`<div class="tabs" role="tablist" aria-label="Hover mode">${MODES.map(m=>`<button role="tab" data-m="${m}">${m==='ascii'?'ASCII':'Pixel'}</button>`).join('')}</div>`:'';
     const presets=scoped?'':`<label><b>Preset</b><select data-p>${['Custom',...Object.keys(PRESETS)].map(o=>`<option>${o}</option>`).join('')}</select><small>Start from a ready-made look, then fine-tune below.</small></label>`;
-    ap.innerHTML=tabs+presets+spec.map(([h,i,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4><p class="note">${i}</p>${l.map(ctl).join('')}</section>`).join('')
+    ap.innerHTML=presets+spec.map(([h,i,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4><p class="note">${i}</p>${l.map(ctl).join('')}</section>`).join('')
       +`<div class="acts"><button data-a="${scoped?'preview':'demo'}">${scoped?'Preview':'Play demo'}</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>`;
     document.body.append(btn,ap);
     const units=Object.fromEntries(this.spec.flatMap(s=>s[2]).map(x=>[x.k,x.u||''])),pre=$('[data-p]',ap)||{};
     const sync=el=>{const k=el.dataset.k;if(el.type==='checkbox')el.checked=C[k];else el.value=C[k];if(el.type==='range')el.parentNode.querySelector('output').textContent=C[k]+units[k]};
-    const mode=()=>{ap.dataset.mode=C.mode;$$('[role=tab]',ap).forEach(t=>t.setAttribute('aria-selected',t.dataset.m===C.mode))};
     const all=()=>$$('[data-k]',ap).forEach(sync),save=()=>{try{localStorage.setItem('ascii-cfg',JSON.stringify(C))}catch{}},resize=()=>{Ascii.coarse=false;Ascii.size()};
-    all();mode();
-    ap.addEventListener('keydown',e=>{const t=e.target;if(t.getAttribute('role')==='tab'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const o=$$('[role=tab]',ap).find(x=>x!==t);o.focus();o.click()}});
+    all();
     ap.addEventListener('input',e=>{
       const el=e.target;
-      if('p' in el.dataset){if(el.value!=='Custom'){Object.assign(C,ASCII_DEF,PRESETS[el.value],{mode:C.mode});resize();all();save()}return}
+      if('p' in el.dataset){if(el.value!=='Custom'){Object.assign(C,ASCII_DEF,PRESETS[el.value]);resize();all();save()}return}
       const k=el.dataset.k;if(!k)return;
       C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();pre.value='Custom';
-      if(k==='cw'||k==='ls'||k==='lh'||k==='px')resize();
+      if(k==='cw'||k==='ls'||k==='lh')resize();
       if(k==='fWipe')O.measure();   /* the page length follows the footer's scroll length */
     });
     ap.addEventListener('click',e=>{
-      const m=e.target.dataset.m;if(m){C.mode=m;resize();mode();save();return}   /* the other hover mode, live */
       const a=e.target.dataset.a;if(!a)return;
-      if(a==='reset'){if(scoped)for(const k of keys)C[k]=ASCII_DEF[k];else Object.assign(C,ASCII_DEF,{mode:C.mode});resize();O.measure();all();pre.value='Default';save()}
+      if(a==='reset'){if(scoped)for(const k of keys)C[k]=ASCII_DEF[k];else Object.assign(C,ASCII_DEF);resize();O.measure();all();pre.value='Default';save()}
       if(a==='copy')navigator.clipboard?.writeText(JSON.stringify(scoped?Object.fromEntries([...keys].map(k=>[k,C[k]])):C,null,1)).then(()=>{e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200)},()=>{});
       if(a==='preview'){   /* leave the works, then push into the footer like a user would: the snap and the reveal play with the current settings */
         stopScroll();Snap.until=0;page.scrollTop=(O.uF-.12)*O.vh;setTimeout(()=>Smooth.to(page.scrollTop+O.vh*.3),500);
@@ -828,10 +822,10 @@ const Panel={
 /* ── content binding ── */
 function useContent(c){
   const d=JSON.parse($('#cms').textContent),ok=Array.isArray(c?.works)&&c.works.length;
-  CMS={...d,...(c||{}),socials:{...d.socials,...c?.socials},works:ok?c.works:d.works};
+  CMS={...d,...(c||{}),seo:{...d.seo,...c?.seo},socials:{...d.socials,...c?.socials},works:ok?c.works:d.works};
   POSTERS=CMS.works.map(w=>w.poster);VIDEOS=CMS.works.map(w=>w.video);
   POSTER_IMGS=POSTERS.map(u=>{const i=new Image();i.src=u;return i});
-  $('.hi').textContent=CMS.hi;$('.hl').textContent=CMS.headline;$('.copy').textContent=CMS.copy;$('#intro img').alt=CMS.name;
+  document.title=CMS.seo.title;$('.hi').textContent=CMS.hi;$('.hl').textContent=CMS.headline;$('.copy').textContent=CMS.copy;$('#intro img').alt=CMS.name;
   for(const a of $$('a[href^="mailto:"]')){a.href='mailto:'+CMS.email;a.setAttribute('aria-label',(a.classList.contains('arrow')?'Hire me: ':'Email ')+CMS.email)}
   for(const a of $$('.soc a')){const u=CMS.socials[a.dataset.i]||'';a.hidden=!u;if(u!=='#'){a.href=u;a.target='_blank';a.rel='noopener'}}
 }
@@ -850,7 +844,7 @@ function boot(c){
 useContent(c);heroBox();
 Ascii.init();O.init();document.addEventListener('visibilitychange',()=>{for(const c of O.cards){if(document.hidden)c.v.pause();else if(c.on&&!CALM.matches)c.v.play().catch(()=>{})}});Smooth.init();Snap.init();Panel.init();
 document.addEventListener('click',e=>{if(e.target.closest('a[href="#"]'))e.preventDefault()});
-for(const a of $$('[data-to]'))a.addEventListener('click',()=>animateScroll(+a.dataset.to*O.vh,1800));   /* Home / About: top · Works: the works */
+for(const a of $$('[data-to]'))a.addEventListener('click',()=>animateScroll(a.dataset.to==='end'?Smooth.max():+a.dataset.to*O.vh,1800));   /* About: top · Works: the works · Contact: the end of the footer */
 {
   let rw=innerWidth,rh=innerHeight;const coarse=matchMedia('(pointer:coarse)');
   addEventListener('resize',()=>{
