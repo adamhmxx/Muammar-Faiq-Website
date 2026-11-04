@@ -124,8 +124,8 @@ svg{display:block}
 #apb:hover,#apb[aria-expanded=true]{background:#262629;color:#fff}
 #ap{position:fixed;z-index:1200;left:16px;bottom:62px;width:min(300px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 90px));overflow:auto;padding:14px 16px 16px;border-radius:18px;background:rgba(24,24,26,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:400 12px var(--bd);color:var(--dim);scrollbar-width:thin;opacity:0;translate:0 8px;pointer-events:none;transition:opacity .3s ease,translate .45s cubic-bezier(.16,1,.3,1)}
 #ap.open{opacity:1;translate:0 0;pointer-events:auto}
-#ap h4{margin:16px 0 6px;font:500 11px var(--hd);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45)}
-#ap h4:first-child{margin-top:0}
+#ap section{margin-top:14px}
+#ap h4{margin:0 0 6px;font:500 11px var(--hd);letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 #ap label{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;margin:8px 0}
 #ap output{font-variant-numeric:tabular-nums;color:#fff}
 #ap input[type=range]{grid-column:1/-1;width:100%;margin:0;accent-color:var(--pink)}
@@ -134,6 +134,11 @@ svg{display:block}
 #ap .acts{display:flex;gap:8px;margin-top:16px}
 #ap button{flex:1;height:30px;border:0;border-radius:100px;background:#262629;color:#fff;font:inherit;cursor:pointer;transition:background-color .3s ease}
 #ap button:hover{background:#303034}
+#ap .tabs{display:flex;gap:4px;padding:3px;border-radius:100px;background:#262629}
+#ap .tabs button{height:26px;background:transparent;color:var(--dim)}
+#ap .tabs button:hover{background:rgba(255,255,255,.06)}
+#ap .tabs button[aria-selected=true]{background:var(--pink);color:#fff}
+#ap[data-mode=ascii] [data-for=pixel],#ap[data-mode=pixel] [data-for=ascii]{display:none}
 #page.loading ~ #apb,#page.loading ~ #ap{display:none}
 @media (max-width:640px){body.end #apb[aria-expanded=false]{opacity:0;pointer-events:none}}   /* phones: the chip would sit on the footer title */
 
@@ -225,7 +230,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk*14)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
+const ASCII_DEF={mode:'ascii',px:12,levels:8,gap:0,on:true,R:68,tail:14,edge:.85,smooth:.5,rise:.5,fall:.1,cw:6,ls:0,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:140,rim:.3,bg:true,bgAmt:.22,bgTint:'accent'};
 const COLORS=['#3D5AFE','#FF6B35','#00C2A8','#FFD23F','#7C4DFF','#FF4081','#40C4FF','#B2FF59','#E21EFF','#FF9100','#1DE9B6','#F50057'];
 /* works appear in mirrored pairs, alternating left / right, each 3 columns wide; pairs share a speed, pairs differ (parallax) */
 const SPD=[1,1,1.16,1.16,.88,.88,1.08,1.08,.94,.94];
@@ -369,7 +374,7 @@ const Ascii={
     addEventListener('touchend',off,{passive:true});
   },
   size(){
-    const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),cw=this.cw=Math.max(3,gs+this.cfg.ls),ch=this.ch=Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
+    const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),pz=this.cfg.mode==='pixel',cw=this.cw=pz?Math.max(3,Math.round(this.cfg.px*(this.coarse?1.35:1))):Math.max(3,gs+this.cfg.ls),ch=this.ch=pz?cw:Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
     Object.assign(this,{fs:Math.round(gs*1.65)*.95,cols,rows,a:new Float32Array(cols*rows),t:new Float32Array(cols*rows),bb:null,u:null,drawn:null,snap:null});
     this.cv.width=innerWidth*d;this.cv.height=innerHeight*d;this.sc.width=cols;this.sc.height=rows*2;   /* snapshots: colour on top, coverage below */
   },
@@ -446,7 +451,7 @@ const Ascii={
     const {px,cv}=S;c.setTransform(d,0,0,d,0,0);c.font=`${this.fs}px "Geist Mono",ui-monospace,monospace`;c.textBaseline='top';
     const tk=now/C.speed,SET=SETS_BY[C.set]||SETS,BG=C.bgTint==='white'?'#fff':C.bgTint==='dim'?'#8a8a94':'#8652ff',
       sm=C.smooth,m0=.05*(1-sm),m1=.45+.5*sm,g0=.08*(1-sm),g1=.5+.45*sm,   /* how gradually cells fade between the lens and the page */
-      ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2;                      /* glyphs sit centred in their (spaced) cell */
+      ox=Math.max(0,(cw-this.fs*.6)/2)+.3,oy=1+C.lh/2,pix=C.mode==='pixel',gp=pix?Math.min(C.gap,(cw-2)/2):0,LV=C.levels|0,QS=255/Math.max(1,LV-1);   /* pixel mode: block gap, colour levels */                      /* glyphs sit centred in their (spaced) cell */
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
@@ -454,9 +459,15 @@ const Ascii={
       if(A<.06){
         if(C.bg&&C.bgAmt>0&&mix(i,j,3)%5<2){   /* nothing here: a faint scatter of glyphs (2 cells in 5, to stay light) still shows what the lens reveals */
           const n=.5+.5*Math.sin(i*.31+tk*.35)*Math.cos(j*.23-tk*.27),g=SET[clamp((n*3)|0,0,2)];
-          c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
+          c.globalAlpha=smooth(g0,g1,v)*C.bgAmt*(.35+.65*n);c.fillStyle=BG;if(pix)c.fillRect(i*cw+gp+1,j*ch+gp+1,cw-2*gp-2,ch-2*gp-2);else c.fillText(g[mix(i,j,(tk/2+mix(i,j,1)%8/8)|0)%g.length],i*cw+ox,j*ch+oy);
         }
         continue;
+      }
+      if(pix){   /* pixelated: the cell's own colour as one solid block */
+        let r=px[o],g=px[o+1],bl=px[o+2];
+        if(LV<16){r=Math.round(r/QS)*QS;g=Math.round(g/QS)*QS;bl=Math.round(bl/QS)*QS}
+        if(C.color!=='original'){const T=tint(C.color,(.3*r+.59*g+.11*bl)/255,i,j,tk,r,g,bl);r=lerp(r,T[0],C.colorAmt);g=lerp(g,T[1],C.colorAmt);bl=lerp(bl,T[2],C.colorAmt)}
+        c.globalAlpha=smooth(m0,m1,v)*C.alpha;c.fillStyle=`rgb(${r|0},${g|0},${bl|0})`;c.fillRect(i*cw+gp,j*ch+gp,cw-2*gp,ch-2*gp);continue;
       }
       const R=clamp(14+(px[o]-14)/A,0,255)|0,G=clamp(14+(px[o+1]-14)/A,0,255)|0,B=clamp(16+(px[o+2]-16)/A,0,255)|0;   /* original colour */
       const L=(.3*R+.59*G+.11*B)/255,rim=v<.5&&Math.random()<C.rim*(1-v);
@@ -555,29 +566,33 @@ const O={
 const Panel={
   spec:[
     ['Lens',[['on','Enabled'],['R','Radius','px',30,180,1],['tail','Tail length','',1,40,1],['edge','Edge softness','',.05,1,.01],['smooth','Fade smoothness','',0,1,.01],['rise','Rise speed','',.1,1,.01],['fall','Fade-out speed','',.03,.4,.01]]],
-    ['Glyphs',[['cw','Glyph size','px',4,14,1],['ls','Letter spacing','px',-2,10,1],['lh','Line spacing','px',-2,12,1],['set','Glyph set',['mixed','minimal','binary','code']],['speed','Shuffle interval','ms',40,600,10],['rim','Rim scramble','',0,1,.05],['alpha','Glyph opacity','',.2,1,.05]]],
-    ['Colour',[['color','Effect',['original','white','accent','duotone','rainbow','invert']],['colorAmt','Effect strength','',0,1,.05]]],
+    ['Glyphs',[['cw','Glyph size','px',4,14,1],['ls','Letter spacing','px',-2,10,1],['lh','Line spacing','px',-2,12,1],['set','Glyph set',['mixed','minimal','binary','code']],['speed','Shuffle interval','ms',40,600,10],['rim','Rim scramble','',0,1,.05]],'ascii'],
+    ['Pixels',[['px','Pixel size','px',4,40,1],['levels','Colour levels','',2,16,1],['gap','Block gap','px',0,6,1]],'pixel'],
+    ['Colour',[['color','Effect',['original','white','accent','duotone','rainbow','invert']],['colorAmt','Effect strength','',0,1,.05],['alpha','Opacity','',.2,1,.05]]],
     ['Background',[['bg','Reveal on empty areas'],['bgAmt','Strength','',0,.3,.01],['bgTint','Tint',['accent','white','dim']]]]],
   init(){
     const C=Ascii.cfg,ctl=([k,l,u,min,max,st])=>Array.isArray(u)?`<label>${l}<select data-k="${k}">${u.map(o=>`<option>${o}</option>`).join('')}</select></label>`
       :min===undefined?`<label>${l}<input type="checkbox" data-k="${k}"></label>`
       :`<label>${l}<output></output><input type="range" data-k="${k}" min="${min}" max="${max}" step="${st}"></label>`;
     const ap=this.ap=document.createElement('aside'),btn=document.createElement('button');
-    ap.id='ap';ap.setAttribute('aria-label','ASCII effect settings');btn.id='apb';btn.textContent='ASCII';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','ap');
-    ap.innerHTML=this.spec.map(([h,l])=>`<h4>${h}</h4>${l.map(ctl).join('')}`).join('')+'<div class="acts"><button data-a="demo">Play demo</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>';
+    ap.id='ap';ap.setAttribute('aria-label','Hover effect settings');btn.id='apb';btn.textContent='Hover FX';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','ap');
+    ap.innerHTML='<div class="tabs" role="tablist" aria-label="Hover mode"><button role="tab" data-m="ascii">ASCII</button><button role="tab" data-m="pixel">Pixel</button></div>'+this.spec.map(([h,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4>${l.map(ctl).join('')}</section>`).join('')+'<div class="acts"><button data-a="demo">Play demo</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>';
     document.body.append(btn,ap);
     const units=Object.fromEntries(this.spec.flatMap(([,l])=>l.map(([k,,u])=>[k,typeof u==='string'?u:''])));
     const sync=el=>{const k=el.dataset.k;if(el.type==='checkbox')el.checked=C[k];else el.value=C[k];if(el.type==='range')el.previousElementSibling.textContent=C[k]+units[k]};
     const all=()=>$$('[data-k]',ap).forEach(sync),save=()=>{try{localStorage.setItem('ascii-cfg',JSON.stringify(C))}catch{}};
-    all();
+    const mode=()=>{ap.dataset.mode=C.mode;$$('[role=tab]',ap).forEach(t=>t.setAttribute('aria-selected',t.dataset.m===C.mode))};
+    all();mode();
+    ap.addEventListener('keydown',e=>{const t=e.target;if(t.getAttribute('role')==='tab'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const o=$$('[role=tab]',ap).find(x=>x!==t);o.focus();o.click()}});
     ap.addEventListener('input',e=>{
       const el=e.target,k=el.dataset.k;if(!k)return;
       C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();
-      if(k==='cw'||k==='ls'||k==='lh'){Ascii.coarse=false;Ascii.size()}
+      if(k==='cw'||k==='ls'||k==='lh'||k==='px'){Ascii.coarse=false;Ascii.size()}
     });
     ap.addEventListener('click',e=>{
+      const m=e.target.dataset.m;if(m){C.mode=m;Ascii.coarse=false;Ascii.size();mode();save();return}   /* the other hover mode, live */
       const a=e.target.dataset.a;if(!a)return;
-      if(a==='reset'){Object.assign(C,ASCII_DEF);Ascii.coarse=false;Ascii.size();all();save()}
+      if(a==='reset'){Object.assign(C,ASCII_DEF,{mode:C.mode});Ascii.coarse=false;Ascii.size();all();save()}
       if(a==='copy')navigator.clipboard?.writeText(JSON.stringify(C,null,1)).then(()=>{e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200)},()=>{});
       if(a==='demo'){   /* a lens sweeping the middle of the page, to judge the settings by */
         clearInterval(this.dm);const t0=performance.now();
