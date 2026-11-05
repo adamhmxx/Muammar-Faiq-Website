@@ -266,7 +266,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,mode:'convert',aAlpha:.8,aDensity:.55,aColor:'white',aScale:1.35,aSpeed:.1,grey:.55,surface:'keep',lighten:.3,lift:.3,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
+const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,mode:'convert',aAlpha:.8,aDensity:.55,aColor:'white',aScale:1.35,aSpeed:.1,grey:.55,surface:'keep',lighten:.3,lift:.3,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
 /* ── content (edited in admin.html, saved as content.json; the copy embedded below is the fallback) ── */
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const CMS_P=Promise.race([fetch('content.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null),new Promise(r=>setTimeout(r,2500,null))]);
@@ -280,7 +280,7 @@ const GRID=w=>w<=640?{n:4,m:20,g:12,cols:[1,2,1,2,1,2,1,2,1,2],minH:520}      /*
   :w<=1024?{n:8,m:32,g:16,cols:[1,6,3,4,2,5,1,6,3,4],minH:600}                  /* tablet */
   :{n:12,m:64,g:16,cols:[1,10,4,7,2,9,3,8,5,6],minH:620};                        /* desktop */
 const card=i=>{const w=CMS.works[i],a=/^https?:\/\//.test(w.link||''),t=a?'a':'div';return `<${t} class="card"${a?` href="${esc(w.link)}" target="_blank" rel="noopener" aria-label="${esc(w.title)}, ${esc(w.year)}"`:''} style="--c:${esc(w.color||COLORS[i%COLORS.length])}"><div class="thumb"><i data-p="${i}" style="background:${bgp(i)},var(--c)"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video></i></div><div class="meta"><h3 class="hd">${esc(w.title)}${a?'<svg class="go" viewBox="0 0 120 120" aria-hidden="true"><use href="#i-arrow"/></svg>':''}</h3><span>${esc(w.year)}</span></div></${t}>`};
-const page=$('#page'),TOUCH=matchMedia('(max-width:1024px)'),CALM=matchMedia('(prefers-reduced-motion:reduce)');
+const page=$('#page'),TOUCH=matchMedia('(max-width:1024px)'),CALM=matchMedia('(prefers-reduced-motion:reduce)'),NOHOVER=matchMedia('(hover:none)');   /* phones and tablets: no pointer to follow, so no lens */
 
 /* live WIB clock (Asia/Jakarta, UTC+7) */
 {
@@ -478,13 +478,9 @@ const Ascii={
     try{const sv=JSON.parse(localStorage.getItem('ascii-cfg')||'{}');if('soft' in sv){if(!('edge' in sv))sv.edge=1-sv.soft;delete sv.soft}Object.assign(this.cfg,sv)}catch{}   /* settings saved by the first panel used "soft": the same thing, inverted */
     this.sym=Object.fromEntries($$('symbol').map(s=>[s.id,{vb:s.viewBox.baseVal,d:$$('path',s).map(p=>new Path2D(p.getAttribute('d')))}]));
     this.size();
-    const at=(x,y)=>{if(this.cfg.on&&!page.classList.contains('loading')&&!CALM.matches){this.p={x,y};this.mt=performance.now()}},off=()=>{this.p=null};
-    addEventListener('pointermove',e=>{const t=e.target,ui=t.closest('#ap,#apb');this.over=!ui&&!!t.closest(HOT);this.fast=!!t.closest('.arrow');ui?off():at(e.clientX,e.clientY)},{passive:true});
+    const at=(x,y)=>{if(!NOHOVER.matches&&this.cfg.on&&!page.classList.contains('loading')&&!CALM.matches){this.p={x,y};this.mt=performance.now()}},off=()=>{this.p=null};
+    addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const t=e.target,ui=t.closest('#ap,#apb');this.over=!ui&&!!t.closest(HOT);this.fast=!!t.closest('.arrow');ui?off():at(e.clientX,e.clientY)},{passive:true});
     document.documentElement.addEventListener('pointerleave',off);
-    /* touch: the lens sits above the finger, where it can be seen */
-    addEventListener('touchstart',e=>{if(e.target.closest('#ap,#apb'))return;this.over=!!e.target.closest(HOT);const t=e.touches[0];this.trail=[];at(t.clientX,t.clientY-this.cfg.R*this.cfg.touchOff)},{passive:true});
-    addEventListener('touchmove',e=>{if(e.target.closest('#ap,#apb'))return;const t=e.touches[0];at(t.clientX,t.clientY-this.cfg.R*this.cfg.touchOff)},{passive:true});
-    addEventListener('touchend',off,{passive:true});
   },
   size(){
     const d=this.dpr=Math.min(2,devicePixelRatio||1),gs=Math.round(this.cfg.cw*(this.coarse?1.35:1)),cw=this.cw=Math.max(3,gs+this.cfg.ls),ch=this.ch=Math.max(5,Math.round(gs*1.65)+this.cfg.lh),cols=Math.ceil(innerWidth/cw),rows=Math.ceil(innerHeight/ch);
@@ -738,7 +734,6 @@ const Panel={
     ['Behaviour','How the lens reacts to what is under it.',[
       Tg('yieldTo','Yield to buttons & links','The lens steps aside over buttons, links and icons, so their own hover state stays clear and easy to click.'),
       Rg('boost','Text legibility','Pushes thin strokes (small text) toward denser characters so they stay readable.','',1,3,.05),
-      Rg('touchOff','Touch offset','On phones, how far above the finger the lens sits (times the radius), so the finger does not cover it.','',0,1.5,.05),
       Tg('perf','Auto performance mode','Switches to coarser cells automatically if frames start running late.')]],
     ['Convert objects','How the design underneath is rebuilt as characters.',[
       Rg('under','Original visibility','How much of the original design still shows through beneath the characters.','',0,1,.05),
