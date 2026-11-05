@@ -160,6 +160,11 @@ a.card:hover .go,a.card:focus-visible .go{opacity:1;translate:0 0}
 #ap input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--pink)}
 #ap select{padding:4px 8px;border:0;border-radius:8px;background:#262629;color:#fff;font:inherit}
 #ap .acts{display:flex;gap:8px;margin-top:16px}
+#ap .tabs{display:flex;gap:4px;padding:3px;border-radius:100px;background:#262629}
+#ap .tabs button{height:26px;background:transparent;color:var(--dim)}
+#ap .tabs button:hover{background:rgba(255,255,255,.06)}
+#ap .tabs button[aria-selected=true]{background:var(--pink);color:#fff}
+#ap[data-mode=convert] [data-for=accent],#ap[data-mode=accent] [data-for=convert]{display:none}
 #ap button{flex:1;height:30px;border:0;border-radius:100px;background:#262629;color:#fff;font:inherit;cursor:pointer;transition:background-color .3s ease}
 #ap button:hover{background:#303034}
 #page.loading ~ #apb,#page.loading ~ #ap{display:none}
@@ -261,7 +266,7 @@ const hsl=(h,s,l)=>{const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 2
 const tint=(m,L,i,j,tk,R,G,B)=>m==='white'?[232,232,234]:m==='accent'?[134,82,255]:m==='duotone'?[lerp(28,232,L),lerp(16,214,L),lerp(76,255,L)]
   :m==='rainbow'?hsl((i*2.2+j*1.6+tk)%360,.85,.62):[255-R,255-G,255-B];   /* invert */
 /* lens settings (the control panel edits them live; they are remembered per browser) */
-const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,grey:.55,surface:'keep',lighten:.3,lift:.3,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
+const ASCII_DEF={fWipe:.4,fStagger:.1,fRevealMs:1050,fRise:1,snap:true,snapAt:.1,snapMs:1900,snapBack:true,mode:'convert',aAlpha:.8,aDensity:.55,aColor:'white',aScale:1.35,aSpeed:.1,grey:.55,surface:'keep',lighten:.3,lift:.3,tailTaper:1,tailCurve:.3,tailFade:.8,rest:110,hold:false,yieldTo:true,boost:1.6,under:0,touchOff:.7,perf:true,rimWidth:.9,bias:0,contrast:2,sat:1,bright:1,hueSpeed:1,bgDensity:.6,bgScale:1.35,bgSpeed:.1,on:true,R:120,tail:18,edge:1,smooth:0,rise:.48,fall:.1,cw:6,ls:1,lh:0,alpha:1,set:'mixed',color:'original',colorAmt:1,speed:200,rim:.45,bg:true,bgAmt:.3,bgTint:'white'};
 /* ── content (edited in admin.html, saved as content.json; the copy embedded below is the fallback) ── */
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const CMS_P=Promise.race([fetch('content.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).catch(()=>null),new Promise(r=>setTimeout(r,2500,null))]);
@@ -552,11 +557,12 @@ const Ascii={
     if(o0)c.clearRect(o0[0]*d,o0[1]*d,o0[2]*d,o0[3]*d);
     this.on=i1>=0;if(!this.on){this.bb=this.drawn=this.snap=null;return}   /* all faded: sleep */
     this.bb=[i0,j0,i1,j1];
+    const acc=C.mode==='accent';
     let S=this.snap;const st=page.scrollTop;
     if(!S||st!==S.st||++S.n>(this.fast?0:2)||i0<S.i0||j0<S.j0||i1>=S.i0+S.w||j1>=S.j0+S.h){   /* (re)draw the snapshots, with room to move */
       const x0=Math.max(0,i0-10),y0=Math.max(0,j0-7),w=Math.min(cols,i1+11)-x0,h=Math.min(this.rows,j1+8)-y0,s=this.sx,rows=this.rows;
       const box={left:x0*cw,top:y0*ch,right:(x0+w)*cw,bottom:(y0+h)*ch};
-      for(const mono of [0,1]){
+      for(const mono of acc&&C.aColor!=='original'?[1]:[0,1]){   /* the accent only needs the colour snapshot when it borrows the design's colours */
         s.setTransform(1,0,0,1,0,0);s.fillStyle=mono?'#000':'#0e0e10';s.fillRect(x0,y0+mono*rows,w,h);
         s.setTransform(1/cw,0,0,1/ch,0,mono*rows);s.textBaseline='middle';
         this.paint($('#pin'),s,box,false,mono);
@@ -571,6 +577,15 @@ const Ascii={
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){
       const v=a[j*cols+i];if(!v)continue;
       const o=((j-S.j0)*S.w+i-S.i0)*4,A=cv[o]/255;
+      if(acc){   /* accent: no cell hides the design; a share of the cells carries a glyph above it, denser over objects, drifting over empty areas */
+        if(mix(i,j,5)%100>=C.aDensity*100)continue;
+        const n=.5+.5*Math.sin(i*.31/C.aScale+tk*.35*C.aSpeed)*Math.cos(j*.23/C.aScale-tk*.27*C.aSpeed),d=clamp(A*C.boost*.6+n*.4,0,1),set=SET[Math.round(d*5)],
+          gl=v<C.rimWidth&&Math.random()<C.rim*(1-v)?NOISE[(Math.random()*NOISE.length)|0]:set[mix(i,j,tk+mix(i,j,0)%8/8|0)%set.length];
+        let cr=255,cg=255,cb=255;
+        if(C.aColor==='accent'){cr=190;cg=160;cb=255}
+        else if(C.aColor==='original'&&A>=.06){cr=lerp(clamp(14+(px[o]-14)/A,0,255),255,.4);cg=lerp(clamp(14+(px[o+1]-14)/A,0,255),255,.4);cb=lerp(clamp(16+(px[o+2]-16)/A,0,255),255,.4)}
+        c.globalAlpha=smooth(g0,g1,v)*C.aAlpha*(.45+.55*d);c.fillStyle=`rgb(${cr|0},${cg|0},${cb|0})`;c.fillText(gl,i*cw+ox,j*ch+oy);continue;
+      }
       const keep=C.surface==='keep'&&A>=.06&&span(px[o],px[o+1],px[o+2])>60;   /* a coloured surface (purple footer, a work) keeps its colour under the characters */
       let surf=keep?`rgb(${px[o]},${px[o+1]},${px[o+2]})`:null;
       if(!keep&&C.surface==='keep'&&A>=.06&&lum(px[o],px[o+1],px[o+2])>140){   /* bright text: find the coloured surface it sits on, a few cells around */
@@ -723,11 +738,18 @@ const Panel={
     ['Behaviour','How the lens reacts to what is under it.',[
       Tg('yieldTo','Yield to buttons & links','The lens steps aside over buttons, links and icons, so their own hover state stays clear and easy to click.'),
       Rg('boost','Text legibility','Pushes thin strokes (small text) toward denser characters so they stay readable.','',1,3,.05),
-      Rg('under','Original visibility','How much of the original design still shows through beneath the characters.','',0,1,.05),
       Rg('touchOff','Touch offset','On phones, how far above the finger the lens sits (times the radius), so the finger does not cover it.','',0,1.5,.05),
-      Sl('surface','Coloured surfaces','Keep: a coloured surface stays its own colour and the characters appear lighter on top. Dark: it turns dark and the characters keep their colour.',['keep','dark']),
-      Rg('lighten','Characters lightening','On a kept surface, how much lighter the characters are than the surface itself.','',0,1,.01),
       Tg('perf','Auto performance mode','Switches to coarser cells automatically if frames start running late.')]],
+    ['Convert objects','How the design underneath is rebuilt as characters.',[
+      Rg('under','Original visibility','How much of the original design still shows through beneath the characters.','',0,1,.05),
+      Sl('surface','Coloured surfaces','Keep: a coloured surface stays its own colour and the characters appear lighter on top. Dark: it turns dark and the characters keep their colour.',['keep','dark']),
+      Rg('lighten','Characters lightening','On a kept surface, how much lighter the characters are than the surface itself.','',0,1,.01)],'convert'],
+    ['ASCII accent','The design stays as it is; a liquid layer of characters floats above it.',[
+      Rg('aAlpha','Strength','How visible the characters are above the design.','',.1,1,.01),
+      Rg('aDensity','Density','Share of the cells that carry a character. Lower keeps more of the design clear.','',.1,1,.05),
+      Sl('aColor','Colour','White is neutral, Accent is violet, Original borrows the colours of what is underneath.',['white','accent','original']),
+      Rg('aScale','Wave size','Size of the drifting waves that shape the layer over empty areas.','',.5,3,.05),
+      Rg('aSpeed','Wave speed','How fast those waves drift.','',0,2,.05)],'accent'],
     ['Footer scroll','How the page moves from the works into the footer and back.',[
       Tg('snap','Open the footer in one scroll','A short scroll into the footer carries the page to its end: the purple panel rises and its content appears in one go.'),
       Rg('snapAt','Trigger depth','How far into the footer zone you scroll (as a share of the screen height) before the snap takes over. Lower reacts sooner.','',.01,.4,.01),
@@ -738,7 +760,7 @@ const Panel={
       Rg('fStagger','Content stagger','Delay between one footer item and the next as they appear. 0 shows them all at once.','s',0,.3,.01),
       Rg('fRevealMs','Content speed','How long each footer item takes to fade in.','ms',300,2000,50),
       Rg('fRise','Content rise','How far each item travels while it appears. 0 only fades.','',0,2,.05)],null,'foot'],
-    ['Glyphs','The characters the design is rebuilt from.',[
+    ['Glyphs','The characters the lens is made of.',[
       Rg('cw','Glyph size','Size of each character.','px',4,14,1),
       Rg('ls','Letter spacing','Extra space between characters, sideways.','px',-2,10,1),
       Rg('lh','Line spacing','Extra space between rows of characters.','px',-2,12,1),
@@ -747,7 +769,7 @@ const Panel={
       Rg('rim','Rim scramble','How many characters at the border flicker through random symbols.','',0,1,.05),
       Rg('rimWidth','Rim width','How far in from the border the scrambling zone reaches.','',.1,.9,.05),
       Rg('bias','Density bias','Shifts every character lighter (negative) or denser (positive).','',-.3,.3,.01),
-      Rg('contrast','Density contrast','Spreads or squeezes the light-to-dense range. High is punchy, low is flat.','',.5,2,.05)],'ascii'],
+      Rg('contrast','Density contrast','Spreads or squeezes the light-to-dense range. High is punchy, low is flat.','',.5,2,.05)]],
     ['Colour','How the converted characters are coloured.',[
       Sl('color','Effect','Recolours the characters. Original keeps the colour of what is underneath.',['original','white','accent','duotone','rainbow','invert']),
       Rg('colorAmt','Effect strength','How much of the effect is mixed over the original colour.','',0,1,.05),
@@ -756,14 +778,14 @@ const Panel={
       Rg('grey','Grey surfaces','Tones down neutral grey and light-grey surfaces so their characters stay subtle. 1 leaves them as they are; pure white text is not affected.','',.2,1,.01),
       Rg('lift','Dark surface lift','Brightens very dark surfaces (like the navbar) so their characters stay visible.','',0,.6,.01),
       Rg('hueSpeed','Rainbow speed','How fast the rainbow effect cycles.','',0,4,.05),
-      Rg('alpha','Opacity','How solid the characters are.','',.2,1,.05)]],
+      Rg('alpha','Opacity','How solid the characters are.','',.2,1,.05)],'convert'],
     ['Background','A faint field of characters shown where there is nothing to convert.',[
       Tg('bg','Reveal on empty areas','Lets the lens show a quiet texture even over empty background.'),
       Rg('bgAmt','Strength','How visible the texture is.','',0,.3,.01),
       Sl('bgTint','Tint','Colour of the texture.',['accent','white','dim']),
       Rg('bgDensity','Density','Share of the empty cells that get a character.','',.1,1,.05),
       Rg('bgScale','Pattern scale','Size of the drifting waves in the pattern.','',.5,3,.05),
-      Rg('bgSpeed','Drift speed','How fast the pattern drifts.','',0,2,.05)]]],
+      Rg('bgSpeed','Drift speed','How fast the pattern drifts.','',0,2,.05)],'convert']],
   init(){
     if(SHOW_PANEL||/[?&#]fx\b/.test(location.search+location.hash))return this.build();
     let taps=[];const tm=$('.tm'),wake=()=>{removeEventListener('keydown',key);tm.removeEventListener('click',tap);this.build();this.toggle()},
@@ -779,25 +801,30 @@ const Panel={
     const ap=this.ap=document.createElement('aside'),btn=document.createElement('button');
     const spec=PANEL_SCOPE==='footer'?this.spec.filter(s=>s[4]==='foot'):this.spec,scoped=PANEL_SCOPE==='footer',keys=new Set(spec.flatMap(s=>s[2]).map(x=>x.k));
     ap.id='ap';ap.setAttribute('aria-label',scoped?'Footer settings':'Hover effect settings');btn.id='apb';btn.textContent=scoped?'Footer FX':'Hover FX';btn.setAttribute('aria-expanded','false');btn.setAttribute('aria-controls','ap');
+    const tabs=scoped?'':`<div class="tabs" role="tablist" aria-label="Hover approach">${[['convert','Convert objects'],['accent','ASCII accent']].map(([m,l])=>`<button role="tab" data-m="${m}">${l}</button>`).join('')}</div>`;
     const presets=scoped?'':`<label><b>Preset</b><select data-p>${['Custom',...Object.keys(PRESETS)].map(o=>`<option>${o}</option>`).join('')}</select><small>Start from a ready-made look, then fine-tune below.</small></label>`;
-    ap.innerHTML=presets+spec.map(([h,i,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4><p class="note">${i}</p>${l.map(ctl).join('')}</section>`).join('')
+    ap.innerHTML=tabs+presets+spec.map(([h,i,l,m])=>`<section${m?` data-for="${m}"`:''}><h4>${h}</h4><p class="note">${i}</p>${l.map(ctl).join('')}</section>`).join('')
       +`<div class="acts"><button data-a="${scoped?'preview':'demo'}">${scoped?'Preview':'Play demo'}</button><button data-a="reset">Reset</button><button data-a="copy">Copy</button></div>`;
     document.body.append(btn,ap);
     const units=Object.fromEntries(this.spec.flatMap(s=>s[2]).map(x=>[x.k,x.u||''])),pre=$('[data-p]',ap)||{};
     const sync=el=>{const k=el.dataset.k;if(el.type==='checkbox')el.checked=C[k];else el.value=C[k];if(el.type==='range')el.parentNode.querySelector('output').textContent=C[k]+units[k]};
+    const mode=()=>{ap.dataset.mode=C.mode;$$('[role=tab]',ap).forEach(t=>t.setAttribute('aria-selected',t.dataset.m===C.mode))};
     const all=()=>$$('[data-k]',ap).forEach(sync),save=()=>{try{localStorage.setItem('ascii-cfg',JSON.stringify(C))}catch{}},resize=()=>{Ascii.coarse=false;Ascii.size()};
-    all();
+    all();mode();
+    ap.addEventListener('keydown',e=>{const t=e.target;if(t.getAttribute('role')==='tab'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const o=$$('[role=tab]',ap).find(x=>x!==t);o.focus();o.click()}});
     ap.addEventListener('input',e=>{
       const el=e.target;
-      if('p' in el.dataset){if(el.value!=='Custom'){Object.assign(C,ASCII_DEF,PRESETS[el.value]);resize();all();save()}return}
+      if('p' in el.dataset){if(el.value!=='Custom'){Object.assign(C,ASCII_DEF,PRESETS[el.value],{mode:C.mode});resize();all();save()}return}
       const k=el.dataset.k;if(!k)return;
       C[k]=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;sync(el);save();pre.value='Custom';
       if(k==='cw'||k==='ls'||k==='lh')resize();
+      if(k==='aColor')Ascii.snap=null;   /* the snapshots depend on it */
       if(k==='fWipe')O.measure();   /* the page length follows the footer's scroll length */
     });
     ap.addEventListener('click',e=>{
+      const m=e.target.dataset.m;if(m){C.mode=m;Ascii.snap=null;mode();save();return}   /* the other approach, live */
       const a=e.target.dataset.a;if(!a)return;
-      if(a==='reset'){if(scoped)for(const k of keys)C[k]=ASCII_DEF[k];else Object.assign(C,ASCII_DEF);resize();O.measure();all();pre.value='Default';save()}
+      if(a==='reset'){if(scoped)for(const k of keys)C[k]=ASCII_DEF[k];else Object.assign(C,ASCII_DEF,{mode:C.mode});resize();O.measure();all();pre.value='Default';save()}
       if(a==='copy')navigator.clipboard?.writeText(JSON.stringify(scoped?Object.fromEntries([...keys].map(k=>[k,C[k]])):C,null,1)).then(()=>{e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200)},()=>{});
       if(a==='preview'){   /* leave the works, then push into the footer like a user would: the snap and the reveal play with the current settings */
         stopScroll();Snap.until=0;page.scrollTop=(O.uF-.12)*O.vh;setTimeout(()=>Smooth.to(page.scrollTop+O.vh*.3),500);
