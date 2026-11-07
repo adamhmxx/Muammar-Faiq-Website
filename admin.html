@@ -50,26 +50,13 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
 <body>
 <main>
   <h1>Portfolio Admin</h1>
-  <p class="sub">Edit the about text, social links and works. Saving commits <code>content.json</code> and uploaded files to GitHub; the site picks them up on its next load.</p>
+  <p class="sub">Edit the about text, social links and works. Saving publishes your changes; the site updates within a minute or two.</p>
 
   <section id="login">
-    <h2>Connect</h2>
-    <div class="row">
-      <label><span>Repository (owner/name)</span><input id="repo" type="text" value="adamhmxx/Muammar-Faiq-Website" autocomplete="off" spellcheck="false"></label>
-      <label><span>Branch</span><input id="branch" type="text" value="main" autocomplete="off" spellcheck="false"></label>
-    </div>
-    <label><span>GitHub access token</span><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
-    <label class="chk"><input id="remember" type="checkbox"><span>Remember on this device</span></label>
-    <button id="connect" class="pri">Load content</button>
-    <details>
-      <summary>How to get a token</summary>
-      <ol>
-        <li>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.</li>
-        <li>Repository access: only this repository.</li>
-        <li>Permissions: <code>Contents</code> → Read and write.</li>
-      </ol>
-      The token stays in this browser and is only sent to api.github.com.
-    </details>
+    <h2>Sign in</h2>
+    <label><span>Password</span><input id="pw" type="password" autocomplete="current-password" spellcheck="false"></label>
+    <button id="connect" class="pri">Sign in</button>
+    <p id="lmsg" class="hint" style="margin:12px 0 0"></p>
   </section>
 
   <div id="editor" class="hide">
@@ -115,23 +102,22 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
   </div>
 </main>
 
-<div class="bar hide" id="bar"><div class="in"><span id="msg"></span><a id="view" href="./" target="_blank" rel="noopener"><button type="button">View site</button></a><button id="save" class="pri" disabled>Save to GitHub</button></div></div>
+<div class="bar hide" id="bar"><div class="in"><span id="msg"></span><a id="view" href="./" target="_blank" rel="noopener"><button type="button">View site</button></a><button id="save" class="pri" disabled>Save changes</button></div></div>
 
 <script>
 "use strict";
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a))n==='class'?e.className=v:n.startsWith('on')?e.addEventListener(n.slice(2),v):v!=null&&e.setAttribute(n,v);e.append(...k);return e};
-const API='https://api.github.com';
+const MAX=3*1024*1024;   /* the server accepts requests up to 4.5 MB (base64 is a third larger) */
 let data=null,sha=null,seo0='',orig=new Set(),dirty=false,pending=new Map(),urls=new Map();   /* pending: repo path → Blob waiting to be uploaded */
 
-const say=(t,c='')=>{const m=$('#msg');m.textContent=t;m.className=c};
-const store=()=>$('#remember').checked?localStorage:sessionStorage;
+const say=(t,c='')=>{const m=$('#msg');m.textContent=t;m.className=c;const l=$('#lmsg');l.textContent=t;l.style.color=c==='bad'?'#ff7a7a':''};
 const b64=s=>btoa(unescape(encodeURIComponent(s)));
 const unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,''))));
 const blobB64=b=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.onerror=no;r.readAsDataURL(b)});
-const cfg=()=>({repo:$('#repo').value.trim(),br:$('#branch').value.trim()||'main',tk:$('#token').value.trim()});
-async function gh(path,opt={}){
-  const {tk}=cfg(),r=await fetch(API+path,{...opt,headers:{Accept:'application/vnd.github+json','Authorization':'Bearer '+tk,'X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})}});
+const cfg=()=>({br:'main'});
+async function gh(path,opt={}){   /* path like /contents/content.json: the server adds the repository and its token */
+  const r=await fetch('/api/gh?p='+encodeURIComponent(path.replace(/^\//,'').split('?')[0]),{...opt,credentials:'same-origin',headers:{'X-Admin':'1',...(opt.body?{'Content-Type':'application/json'}:{})}});
   if(!r.ok){let m=r.statusText;try{m=(await r.json()).message||m}catch{}const e=new Error(`${r.status}: ${m}`);e.status=r.status;throw e}
   return r.status===204?null:r.json();
 }
@@ -139,22 +125,27 @@ const enc=p=>p.split('/').map(encodeURIComponent).join('/');
 const mark=()=>{dirty=true;$('#save').disabled=false;say('Unsaved changes')};
 
 /* ── load ── */
-async function load(){
-  const {repo,br,tk}=cfg();
-  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!tk)return say('Enter the repository and a token.','bad');
-  say('Loading…');$('#connect').disabled=true;
+async function login(){
+  const pw=$('#pw').value;if(!pw)return say('Enter the password.','bad');
+  say('Signing in…');$('#connect').disabled=true;
+  try{
+    const r=await fetch('/api/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}),j=await r.json().catch(()=>({}));
+    if(!r.ok){say(j.error||'Sign-in failed.','bad');$('#connect').disabled=false;return}
+    $('#pw').value='';await load();
+  }catch(e){say(e.message,'bad')}
+  $('#connect').disabled=false;
+}
+async function load(quiet){
+  say('Loading…');
   try{
     let f;
-    try{f=await gh(`/repos/${repo}/contents/content.json?ref=${encodeURIComponent(br)}`);data=JSON.parse(unb64(f.content));sha=f.sha}
+    try{f=await gh('/contents/content.json');data=JSON.parse(unb64(f.content));sha=f.sha}
     catch(e){if(e.status!==404)throw e;const r=await fetch('content.json');data=await r.json();sha=null}   /* first save: start from the site's own copy */
-    store().setItem('adm',JSON.stringify({repo,br,tk}));
-    (store()===localStorage?sessionStorage:localStorage).removeItem('adm');
     data.seo={title:'',description:'',image:'',url:'',...data.seo};seo0=JSON.stringify(data.seo);
     orig=new Set([...data.works.flatMap(w=>[w.video,w.hero,w.poster]),data.seo.image].filter(p=>p&&p.startsWith('assets/')));
     pending.clear();dirty=false;fill();
-    $('#login').classList.add('hide');$('#editor').classList.remove('hide');$('#bar').classList.remove('hide');$('#save').disabled=true;say('Loaded '+repo);
-  }catch(e){say(e.status===401?'The token was rejected.':e.status===404?'Repository or branch not found (check the token covers it).':e.message,'bad')}
-  $('#connect').disabled=false;
+    $('#login').classList.add('hide');$('#editor').classList.remove('hide');$('#bar').classList.remove('hide');$('#save').disabled=true;say('Loaded');
+  }catch(e){if(e.status===401){if(!quiet)say('Please sign in again.','bad');return}say(e.status===500||e.status===502?'The server could not reach GitHub: '+e.message:e.message,'bad')}
 }
 
 /* ── form ── */
@@ -181,6 +172,7 @@ function renderWorks(){
         const f=e.target.files[0];if(!f)return;
         let blob=f,ext=extOf(f);
         if(key==='poster'){blob=await poster(f);ext='webp'}
+        if(blob.size>MAX){e.target.value='';return say(`That file is ${(blob.size/1048576).toFixed(1)} MB. The limit is 3 MB: please compress it first.`,'bad')}
         const p=path(kind,ext);blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);w[key]=p;note.textContent=p.slice(7);
         if(key==='poster')th.style.backgroundImage=`url("${blob.url}")`;mark();
       }}),note)};
@@ -224,7 +216,7 @@ $('#editor').addEventListener('input',e=>{
 });
 
 /* ── save: new files first, then content.json, then files no work uses any more ── */
-async function put(p,content,msg,sh){return gh(`/repos/${cfg().repo}/contents/${enc(p)}`,{method:'PUT',body:JSON.stringify({message:msg,content,branch:cfg().br,...(sh?{sha:sh}:{})})})}
+async function put(p,content,msg,sh){return gh(`/contents/${enc(p)}`,{method:'PUT',body:JSON.stringify({message:msg,content,branch:cfg().br,...(sh?{sha:sh}:{})})})}
 $('#save').addEventListener('click',async()=>{
   for(const w of data.works){if(!w.title?.trim())return say('Every work needs a title.','bad');if(!w.video||!w.poster)return say(`“${w.title}” needs a video and a poster.`,'bad')}
   for(const u of Object.values(data.socials||{}))if(u&&u!=='#'&&!/^https?:\/\//.test(u))return say('Social links must start with https://','bad');
@@ -241,20 +233,20 @@ $('#save').addEventListener('click',async()=>{
     const res=await put('content.json',b64(JSON.stringify(data,null,1)+'\n'),'Update content',sha);sha=res.content.sha;
     if(JSON.stringify(data.seo)!==seo0){   /* crawlers do not run scripts: the tags live in index.html's head */
       say('Updating index.html head…');
-      const f=await gh(`/repos/${cfg().repo}/contents/index.html?ref=${encodeURIComponent(cfg().br)}`),html=unb64(f.content),blk=seoBlock(data.seo),re=/<!--seo-->[\s\S]*<!--\/seo-->/;
+      const f=await gh('/contents/index.html'),html=unb64(f.content),blk=seoBlock(data.seo),re=/<!--seo-->[\s\S]*<!--\/seo-->/;
       if(!re.test(html))throw new Error('index.html has no <!--seo--> block to update.');
       await put('index.html',b64(html.replace(re,()=>blk)),'Update page title and share tags',f.sha);seo0=JSON.stringify(data.seo);
     }
-    for(const p of gone){try{say('Removing '+p.slice(7)+'…');const f=await gh(`/repos/${cfg().repo}/contents/${enc(p)}?ref=${encodeURIComponent(cfg().br)}`);
-      await gh(`/repos/${cfg().repo}/contents/${enc(p)}`,{method:'DELETE',body:JSON.stringify({message:'Remove '+p,sha:f.sha,branch:cfg().br})})}catch{}}
+    for(const p of gone){try{say('Removing '+p.slice(7)+'…');const f=await gh(`/contents/${enc(p)}`);
+      await gh(`/contents/${enc(p)}`,{method:'DELETE',body:JSON.stringify({message:'Remove '+p,sha:f.sha,branch:cfg().br})})}catch{}}
     orig=new Set([...used].filter(p=>p.startsWith('assets/')));pending.clear();dirty=false;
     say('Saved. The site updates within a minute or so.','ok');
-  }catch(e){btn.disabled=false;say(e.status===409?'Someone changed content.json meanwhile: reload and redo the edit.':e.status===403||e.status===401?'The token cannot write to this repository.':e.message,'bad')}
+  }catch(e){btn.disabled=false;say(e.status===409?'Someone changed content.json meanwhile: reload and redo the edit.':e.status===401?'Your session ended: reload the page and sign in again (your edits are still here).':e.status===403?'The server token cannot write to this repository.':e.message,'bad')}
 });
-$('#connect').addEventListener('click',load);
-$('#token').addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+$('#connect').addEventListener('click',login);
+$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
 addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
-try{const s=JSON.parse(localStorage.getItem('adm')||sessionStorage.getItem('adm')||'null');if(s){$('#repo').value=s.repo;$('#branch').value=s.br;$('#token').value=s.tk;$('#remember').checked=!!localStorage.getItem('adm')}}catch{}
+load(true);   /* already signed in on this device? go straight to the editor */
 </script>
 </body>
 </html>
