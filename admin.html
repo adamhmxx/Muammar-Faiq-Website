@@ -192,7 +192,7 @@ const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function seoBlock(o){   /* the same block build3.py writes */
   const u=(o.url||'').replace(/\/+$/,''),img=u&&o.image?u+'/'+o.image:o.image||'';
   return '<!--seo-->\n<title>'+esc(o.title)+'</title>\n<meta name="description" content="'+esc(o.description)+'">\n<meta property="og:type" content="website">\n<meta property="og:title" content="'+esc(o.title)+'">\n<meta property="og:description" content="'+esc(o.description)+'">\n'
-    +(img?'<meta property="og:image" content="'+esc(img)+'">\n<meta name="twitter:card" content="summary_large_image">\n':'')+(u?'<meta property="og:url" content="'+esc(u)+'/">\n':'')+'<link rel="icon" href="assets/favicon.png">\n<!--/seo-->';
+    +(img?'<meta property="og:image" content="'+esc(img)+'">\n<meta name="twitter:card" content="summary_large_image">\n':'')+(u?'<meta property="og:url" content="'+esc(u)+'/">\n':'')+'<link rel="icon" href="assets/favicon.ico" sizes="any">\n<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">\n<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">\n<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">\n<!--/seo-->';
 }
 /* poster → 640×480 webp, cover-cropped */
 async function poster(f){
