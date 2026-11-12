@@ -218,3 +218,57 @@ Konfirmasi tertulis dari client bahwa semua akses sudah diterima dan diuji.
 7. Uji `/admin`: login, edit, Save, cek commit dan situs.
 8. Hapus project Vercel lama, cabut token lama.
 9. Serahkan akses dan dokumen lewat saluran aman.
+
+---
+
+## Lampiran A. Skrip sesi setup bersama (Model B: akun milik client)
+
+Perkiraan 1-2 jam, lewat screen share. Client yang mengetik di akunnya sendiri; developer memandu. Tujuannya: semua kepemilikan atas nama client, dan setelah ini client hanya perlu login ke `/admin`.
+
+**Sebelum sesi (kirim ke client sehari sebelumnya)**
+- [ ] Siapkan email aktif dan kartu pembayaran (untuk domain; hosting jika memakai paket berbayar)
+- [ ] Pasang password manager (1Password, Bitwarden, atau bawaan browser)
+- [ ] Siapkan Terminal dan Node.js, atau developer yang menjalankan perintah hash di komputernya sendiri tanpa menyimpan password client
+
+**Urutan di sesi**
+1. Client membuat akun GitHub, Vercel (login pakai GitHub), dan Cloudflare/registrar kalau domain akan dipindah. (10-15 menit)
+2. Developer transfer repo, client Accept (Tahap 1). (5 menit)
+3. Client membuat token GitHub (Tahap 2), simpan di password manager. (5 menit)
+4. Client menentukan password CMS sendiri di password manager. Hash dibuat di komputer client atau di komputer developer dengan layar client terlihat; passwordnya tidak dikirim lewat chat (Tahap 3). (10 menit)
+5. Client import repo ke Vercel dan mengisi env var (Tahap 4). (10-15 menit)
+6. Pindahkan domain dan pasang DNS (Tahap 5). Bagian ini bisa menunggu propagasi sampai 24-48 jam. (15-30 menit kerja)
+7. Uji bersama (Tahap 6), lalu bersih-bersih (Tahap 7). (15 menit)
+8. Client mencatat tanggal penting di kalender: **domain berakhir** dan **token GitHub berakhir**. (5 menit)
+
+**Hasil akhir yang harus dipegang client**
+- URL admin dan password (di password manager client)
+- Akun GitHub, Vercel, dan domain atas nama client
+- Dokumen ini
+
+---
+
+## Lampiran B. Panduan Cepat Client (non-teknis)
+
+**Cara masuk**
+1. Buka `https://muammarfaiq.com/admin`
+2. Masukkan password, lalu masuk.
+
+**Cara mengubah konten**
+1. Ubah teks, gambar, atau video yang diinginkan.
+2. Klik **Save changes**.
+3. Tunggu sekitar 1 menit, lalu buka situs dan tekan Cmd/Ctrl+Shift+R untuk melihat hasilnya.
+
+**Yang perlu diingat**
+- Login berlaku 12 jam, setelah itu login lagi.
+- Ukuran file upload maksimal 3 MB. Video lebih besar dikompres dulu.
+- Setiap Save langsung tayang di situs. Cek dulu sebelum menyimpan.
+
+**Kalau ada masalah**
+- Tidak bisa login: pastikan password benar dan tidak ada spasi di ujung. Kalau lupa, hubungi developer untuk membuat password baru.
+- Save gagal: kemungkinan token GitHub kedaluwarsa. Hubungi developer.
+- Situs tidak berubah setelah Save: tunggu 2-3 menit dan hard refresh. Kalau masih sama, hubungi developer.
+
+**Tanggal penting (isi saat setup)**
+- Domain berakhir: ______ (pastikan auto-renew aktif)
+- Token GitHub berakhir: ______ (buat token baru dan beri tahu developer sebelum tanggal ini)
+- Kontak developer: ______
