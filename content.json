@@ -20,17 +20,18 @@
   {
    "title": "Rive: Aim Trainer - A fully playable aim trainer inspired by classic grid drills.",
    "year": "2026",
-   "video": "assets/work-9.mp4",
-   "hero": "assets/hero-9.mp4",
-   "poster": "assets/poster-9.webp",
-   "link": "https://muammarfaiq.github.io/aim-trainer/"
+   "video": "assets/work-mwktmhxbd21.mp4",
+   "hero": "",
+   "poster": "assets/poster-mwktn37a770.webp",
+   "link": "https://muammarfaiq.github.io/aim-trainer/",
+   "heroStart": 3.1
   },
   {
    "title": "Rive: Orbit Hop - One tap, that's it.",
    "year": "2026",
    "video": "assets/work-mwksabcle4q.mp4",
    "hero": "",
-   "poster": "assets/poster-mwksabfrbhy.webp",
+   "poster": "assets/poster-mwktnhx525p.webp",
    "heroStart": 8.8,
    "link": "https://rive.app/marketplace/29201-55350-orbit-hop/"
   },
@@ -87,20 +88,6 @@
    "poster": "assets/poster-10.webp",
    "link": "https://dribbble.com/shots/27165268-Aman-ah-Digital-Financial-Platform-Website-Landing-Page-Motion",
    "heroStart": 3.6
-  },
-  {
-   "title": "Project 08",
-   "year": "2023",
-   "video": "assets/work-8.mp4",
-   "hero": "assets/hero-8.mp4",
-   "poster": "assets/poster-8.webp"
-  },
-  {
-   "title": "Project 02",
-   "year": "2025",
-   "video": "assets/work-2.mp4",
-   "hero": "assets/hero-2.mp4",
-   "poster": "assets/poster-2.webp"
   }
  ]
 }
