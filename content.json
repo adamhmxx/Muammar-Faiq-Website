@@ -18,18 +18,20 @@
  },
  "works": [
   {
-   "title": "Beeplus",
-   "year": "2025",
-   "video": "assets/work-1.mp4",
-   "hero": "assets/hero-1.mp4",
-   "poster": "assets/poster-1.webp"
-  },
-  {
    "title": "Project 02",
    "year": "2025",
    "video": "assets/work-2.mp4",
    "hero": "assets/hero-2.mp4",
    "poster": "assets/poster-2.webp"
+  },
+  {
+   "title": "Rive - Orbit Hop",
+   "year": "2026",
+   "video": "assets/work-mwkpdx4n73k.mp4",
+   "hero": "",
+   "poster": "assets/poster-mwkpgcfucgs.webp",
+   "heroStart": 5.2,
+   "link": "https://rive.app/marketplace/29201-55350-orbit-hop/"
   },
   {
    "title": "Project 03",
