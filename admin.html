@@ -29,7 +29,7 @@ button.del{color:var(--bad)}
 @media(max-width:620px){.work{grid-template-columns:1fr}}
 .thumb{width:120px;aspect-ratio:4/3;border-radius:10px;background:#222 center/cover;overflow:hidden}
 .thumb video{width:100%;height:100%;object-fit:cover;display:block}
-.work .row3{display:grid;grid-template-columns:1fr 90px 52px;gap:10px;align-items:end}
+.work .row3{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:end}
 .files{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
 @media(max-width:620px){.files{grid-template-columns:1fr}}
 .files label{margin:0}.files small{display:block;color:var(--mut);word-break:break-all;font-size:11px;margin-top:3px}
@@ -39,6 +39,8 @@ input[type=file]{width:100%;font-size:12px;color:var(--mut)}
 .bar .in{max-width:860px;width:100%;display:flex;gap:12px;align-items:center}
 #msg{flex:1;color:var(--mut);font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #msg.ok{color:var(--ok)}#msg.bad{color:var(--bad)}
+.prev{margin-top:10px;max-width:360px}.prev video{width:100%;aspect-ratio:4/3;border-radius:10px;background:#222;display:block;object-fit:cover}
+.sl{margin-top:10px;margin-bottom:0}.sl span{display:flex;justify-content:space-between;gap:8px}.sl output{font-variant-numeric:tabular-nums}.sl input[type=range]{width:100%;max-width:360px;margin-top:4px;display:block}.sl small{display:block;font-size:11px;margin-top:3px}
 .hint{color:var(--mut);font-size:12px;margin:-6px 0 12px}
 .hide{display:none!important}
 details{margin-top:8px;color:var(--mut);font-size:13px}summary{cursor:pointer}
@@ -95,7 +97,7 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
 
     <section>
       <h2>Works</h2>
-      <p class="hint">Videos are 4:3. A link is optional: with one, the card is clickable and opens it in a new tab. Cards autoplay, so keep files light. The hero loop is a short clip (about 3 s) shown in the hero box and loader; without one the main video is used.</p>
+      <p class="hint">Videos are 4:3 and autoplay on the cards, so keep files light. After choosing a video, drag the sliders under its preview: <b>Poster frame</b> is the still shown on the card and in the loader (it is captured when you let go), and <b>Hero loop</b> is the 3 seconds of the same video that play in the hero box and loader. A link is optional: with one, the card is clickable and opens in a new tab.</p>
       <div id="works"></div>
       <button id="add">+ Add work</button>
     </section>
@@ -108,6 +110,7 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px}
 "use strict";
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[n,v]of Object.entries(a))n==='class'?e.className=v:n.startsWith('on')?e.addEventListener(n.slice(2),v):v!=null&&e.setAttribute(n,v);e.append(...k);return e};
+const HL=3;   /* hero loop length, in seconds */
 const MAX=3*1024*1024;   /* the server accepts requests up to 4.5 MB (base64 is a third larger) */
 let data=null,sha=null,seo0='',orig=new Set(),dirty=false,pending=new Map(),urls=new Map();   /* pending: repo path → Blob waiting to be uploaded */
 
@@ -165,25 +168,52 @@ function renderWorks(){
   const box=$('#works');box.replaceChildren();
   data.works.forEach((w,i)=>{
     const th=h('div',{class:'thumb'});if(w.poster)th.style.backgroundImage=`url("${src(w.poster)}")`;
-    const set=(k,v)=>{w[k]=v;mark()};
-    const file=(label,key,acc,kind)=>{
-      const note=h('small',{},w[key]?w[key].replace(/^assets\//,''):'none');
-      return h('label',{},h('span',{},label),h('input',{type:'file',accept:acc,onchange:async e=>{
-        const f=e.target.files[0];if(!f)return;
-        let blob=f,ext=extOf(f);
-        if(key==='poster'){blob=await poster(f);ext='webp'}
-        if(blob.size>MAX){e.target.value='';return say(`That file is ${(blob.size/1048576).toFixed(1)} MB. The limit is 3 MB: please compress it first.`,'bad')}
-        const p=path(kind,ext);blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);w[key]=p;note.textContent=p.slice(7);
-        if(key==='poster')th.style.backgroundImage=`url("${blob.url}")`;mark();
-      }}),note)};
+    const set=(k,v)=>{w[k]=v;mark()},fmt=t=>t.toFixed(1)+' s';
+    const vid=h('video',{playsinline:'',preload:'auto'});vid.muted=true;
+    const vnote=h('small',{},w.video?w.video.replace(/^assets\//,''):'none');
+    const pt=h('input',{type:'range',min:0,max:0,step:.1,value:0,disabled:''}),ptv=h('output',{},'0.0 s');
+    const hs=h('input',{type:'range',min:0,max:0,step:.1,value:0,disabled:''}),hsv=h('output',{}),legacy=h('small',{});
+    let loopAt=null,fresh=false;   /* loopAt: the start of the hero loop being previewed · fresh: a new video was just picked, so its poster is captured on its own */
+    const stop=()=>{loopAt=null;vid.pause()};
+    const showLoop=()=>{const s=+w.heroStart||0;hsv.textContent=`${fmt(s)} → ${fmt(s+HL)}`;legacy.textContent=w.hero?`Now using the uploaded loop file ${w.hero.replace(/^assets\//,'')}. Move the slider to use this video instead.`:''};
+    const grab=async()=>{   /* the frame under the poster slider → 640×480 webp */
+      try{
+        stop();const t=+pt.value;
+        if(Math.abs(vid.currentTime-t)>.01){vid.currentTime=t;await new Promise(r=>vid.addEventListener('seeked',r,{once:true}))}
+        const c=document.createElement('canvas');c.width=640;c.height=480;
+        const k=Math.max(640/vid.videoWidth,480/vid.videoHeight),ww=vid.videoWidth*k,hh=vid.videoHeight*k;c.getContext('2d').drawImage(vid,(640-ww)/2,(480-hh)/2,ww,hh);
+        const blob=await new Promise(r=>c.toBlob(r,'image/webp',.72)),p=path('poster','webp');
+        blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);w.poster=p;th.style.backgroundImage=`url("${blob.url}")`;mark();
+      }catch(e){say('Could not capture that frame: '+e.message,'bad')}
+    };
+    vid.addEventListener('loadedmetadata',()=>{   /* the video is known: the sliders learn its length */
+      const d=vid.duration;if(!isFinite(d)||d<=0)return;
+      pt.max=Math.max(0,d-.1);pt.disabled=false;hs.max=Math.max(0,d-HL);hs.disabled=d<=HL;
+      hs.value=Math.min(+w.heroStart||0,+hs.max);showLoop();
+      if(fresh){fresh=false;pt.value=Math.min(1,d/2);ptv.textContent=fmt(+pt.value);vid.addEventListener('loadeddata',grab,{once:true});if(vid.readyState>=2)grab()}
+    });
+    vid.addEventListener('timeupdate',()=>{if(loopAt!=null&&vid.currentTime>=loopAt+HL)vid.currentTime=loopAt});
+    vid.addEventListener('ended',()=>{if(loopAt!=null){vid.currentTime=loopAt;vid.play().catch(()=>{})}});
+    pt.addEventListener('input',()=>{stop();ptv.textContent=fmt(+pt.value);vid.currentTime=+pt.value});
+    pt.addEventListener('change',grab);
+    hs.addEventListener('input',()=>{const s=Math.round(+hs.value*10)/10;w.heroStart=s;w.hero='';loopAt=s;showLoop();vid.currentTime=s;vid.play().catch(()=>{});mark()});
+    if(w.video)vid.src=src(w.video);
+    const vin=h('input',{type:'file',accept:'video/mp4,video/webm',onchange:e=>{
+      const f=e.target.files[0];if(!f)return;
+      if(f.size>MAX){e.target.value='';return say(`That file is ${(f.size/1048576).toFixed(1)} MB. The limit is 3 MB: please compress it first.`,'bad')}
+      const p=path('work',extOf(f));f.url=URL.createObjectURL(f);pending.set(p,f);urls.set(p,f.url);
+      w.video=p;w.hero='';w.heroStart=0;vnote.textContent=p.slice(7);stop();fresh=true;vid.src=f.url;mark();
+    }});
     const mv=d=>()=>{const j=i+d;if(j<0||j>=data.works.length)return;[data.works[i],data.works[j]]=[data.works[j],data.works[i]];renderWorks();mark()};
     box.append(h('div',{class:'work'},th,h('div',{},
       h('div',{class:'row3'},
         h('label',{},h('span',{},`Title · work ${i+1}`),h('input',{type:'text',value:w.title||'',oninput:e=>set('title',e.target.value)})),
-        h('label',{},h('span',{},'Year'),h('input',{type:'text',value:w.year||'',oninput:e=>set('year',e.target.value)})),
-        h('label',{},h('span',{},'Colour'),h('input',{type:'color',value:/^#[0-9a-f]{6}$/i.test(w.color)?w.color:'#7c4dff',oninput:e=>set('color',e.target.value)}))),
+        h('label',{},h('span',{},'Year'),h('input',{type:'text',value:w.year||'',oninput:e=>set('year',e.target.value)}))),
       h('label',{style:'margin-top:10px'},h('span',{},'Link (optional)'),h('input',{type:'url',placeholder:'https://',value:w.link||'',oninput:e=>set('link',e.target.value.trim())})),
-      h('div',{class:'files'},file('Poster image','poster','image/*','poster'),file('Video (4:3)','video','video/mp4,video/webm','work'),file('Hero loop (~3 s)','hero','video/mp4,video/webm','hero')),
+      h('label',{style:'margin-top:10px'},h('span',{},'Video (4:3)'),vin,vnote),
+      h('div',{class:'prev'},vid),
+      h('label',{class:'sl'},h('span',{},'Poster frame (captured when you let go)',ptv),pt),
+      h('label',{class:'sl'},h('span',{},'Hero loop (3 s) · from → to',hsv),hs,legacy),
       h('div',{class:'acts'},h('button',{type:'button',onclick:mv(-1),disabled:i===0?'':null,'aria-label':'Move up'},'↑'),h('button',{type:'button',onclick:mv(1),disabled:i===data.works.length-1?'':null,'aria-label':'Move down'},'↓'),
         h('button',{type:'button',class:'del',onclick:()=>{if(data.works.length<2)return say('Keep at least one work.','bad');if(!confirm(`Delete “${w.title||'Untitled'}”? Its files are removed on save.`))return;data.works.splice(i,1);renderWorks();mark()}},'Delete')))));
   });
@@ -194,13 +224,6 @@ function seoBlock(o){   /* the same block build3.py writes */
   return '<!--seo-->\n<title>'+esc(o.title)+'</title>\n<meta name="description" content="'+esc(o.description)+'">\n<meta property="og:type" content="website">\n<meta property="og:title" content="'+esc(o.title)+'">\n<meta property="og:description" content="'+esc(o.description)+'">\n'
     +(img?'<meta property="og:image" content="'+esc(img)+'">\n<meta name="twitter:card" content="summary_large_image">\n':'')+(u?'<meta property="og:url" content="'+esc(u)+'/">\n':'')+'<link rel="icon" href="assets/favicon.ico" sizes="any">\n<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">\n<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">\n<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">\n<!--/seo-->';
 }
-/* poster → 640×480 webp, cover-cropped */
-async function poster(f){
-  const im=await createImageBitmap(f),c=document.createElement('canvas');c.width=640;c.height=480;
-  const k=Math.max(640/im.width,480/im.height),w=im.width*k,hh=im.height*k;c.getContext('2d').drawImage(im,(640-w)/2,(480-hh)/2,w,hh);
-  return new Promise(r=>c.toBlob(r,'image/webp',.72));
-}
-
 $('#shareimg').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   const im=await createImageBitmap(f),c=document.createElement('canvas');c.width=1200;c.height=630;
@@ -208,7 +231,7 @@ $('#shareimg').addEventListener('change',async e=>{
   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.88)),p=path('share','jpg');blob.url=URL.createObjectURL(blob);pending.set(p,blob);urls.set(p,blob.url);
   data.seo.image=p;$('#sharenote').textContent=p.slice(7);mark();
 });
-$('#add').addEventListener('click',()=>{data.works.push({title:'New project',year:String(new Date().getFullYear()),color:'#7c4dff',video:'',hero:'',poster:''});renderWorks();mark();$('#works').lastElementChild.scrollIntoView({behavior:'smooth',block:'center'})});
+$('#add').addEventListener('click',()=>{data.works.push({title:'New project',year:String(new Date().getFullYear()),video:'',hero:'',heroStart:0,poster:''});renderWorks();mark();$('#works').lastElementChild.scrollIntoView({behavior:'smooth',block:'center'})});
 $('#editor').addEventListener('input',e=>{
   const t=e.target;if(t.dataset.k){data[t.dataset.k]=t.value;mark()}
   else if(t.dataset.s){(data.socials||={})[t.dataset.s]=t.value.trim();mark()}
@@ -218,7 +241,7 @@ $('#editor').addEventListener('input',e=>{
 /* ── save: new files first, then content.json, then files no work uses any more ── */
 async function put(p,content,msg,sh){return gh(`/contents/${enc(p)}`,{method:'PUT',body:JSON.stringify({message:msg,content,branch:cfg().br,...(sh?{sha:sh}:{})})})}
 $('#save').addEventListener('click',async()=>{
-  for(const w of data.works){if(!w.title?.trim())return say('Every work needs a title.','bad');if(!w.video||!w.poster)return say(`“${w.title}” needs a video and a poster.`,'bad')}
+  for(const w of data.works){if(!w.title?.trim())return say('Every work needs a title.','bad');if(!w.video||!w.poster)return say(`“${w.title}” needs a video (the poster frame is captured from it).`,'bad')}
   for(const u of Object.values(data.socials||{}))if(u&&u!=='#'&&!/^https?:\/\//.test(u))return say('Social links must start with https://','bad');
   for(const w of data.works)if(w.link&&!/^https?:\/\//.test(w.link))return say(`The link of “${w.title}” must start with https://`,'bad');
   if(data.seo.url&&!/^https?:\/\//.test(data.seo.url))return say('The site address must start with https://','bad');
