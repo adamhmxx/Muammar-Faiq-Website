@@ -36,6 +36,15 @@
    "heroStart": 4.5
   },
   {
+   "title": "Mercedes AMG F1 - Website Landing Page",
+   "year": "2026",
+   "video": "assets/work-7.mp4",
+   "hero": "",
+   "poster": "assets/poster-7.webp",
+   "link": "https://www.behance.net/gallery/252676601/Mercedes-AMG-F1-Petronas-Landing-Page",
+   "heroStart": 3.2
+  },
+  {
    "title": "Finora: AI Finance Website Landing Page Animation",
    "year": "2025",
    "video": "assets/work-4.mp4",
@@ -45,39 +54,31 @@
    "heroStart": 3.3
   },
   {
-   "title": "Project 02",
+   "title": "Veeta: Personal Assitant AI - Website Landing Page Animation",
    "year": "2025",
-   "video": "assets/work-2.mp4",
-   "hero": "assets/hero-2.mp4",
-   "poster": "assets/poster-2.webp"
-  },
-  {
-   "title": "Project 05",
-   "year": "2024",
    "video": "assets/work-5.mp4",
-   "hero": "assets/hero-5.mp4",
-   "poster": "assets/poster-5.webp"
+   "hero": "",
+   "poster": "assets/poster-5.webp",
+   "link": "https://dribbble.com/shots/26840227-Veeta-Personal-Assitant-AI-Website-Landing-Page-Animation",
+   "heroStart": 2
   },
   {
-   "title": "Project 06",
-   "year": "2024",
+   "title": "Josephyne.ai - AI Interior Design Landing Page Website",
+   "year": "2025",
    "video": "assets/work-6.mp4",
-   "hero": "assets/hero-6.mp4",
-   "poster": "assets/poster-6.webp"
+   "hero": "",
+   "poster": "assets/poster-6.webp",
+   "link": "https://dribbble.com/shots/27100960-Josephyne-ai-AI-Interior-Design-Landing-Page-Website",
+   "heroStart": 2.2
   },
   {
-   "title": "Project 07",
-   "year": "2023",
-   "video": "assets/work-7.mp4",
-   "hero": "assets/hero-7.mp4",
-   "poster": "assets/poster-7.webp"
-  },
-  {
-   "title": "Project 08",
-   "year": "2023",
-   "video": "assets/work-8.mp4",
-   "hero": "assets/hero-8.mp4",
-   "poster": "assets/poster-8.webp"
+   "title": "Aman.ah: Digital Financial Platform Website Landing Page Motion",
+   "year": "2025",
+   "video": "assets/work-10.mp4",
+   "hero": "",
+   "poster": "assets/poster-10.webp",
+   "link": "https://dribbble.com/shots/27165268-Aman-ah-Digital-Financial-Platform-Website-Landing-Page-Motion",
+   "heroStart": 3.6
   },
   {
    "title": "Project 09",
@@ -87,11 +88,18 @@
    "poster": "assets/poster-9.webp"
   },
   {
-   "title": "Project 10",
-   "year": "2022",
-   "video": "assets/work-10.mp4",
-   "hero": "assets/hero-10.mp4",
-   "poster": "assets/poster-10.webp"
+   "title": "Project 08",
+   "year": "2023",
+   "video": "assets/work-8.mp4",
+   "hero": "assets/hero-8.mp4",
+   "poster": "assets/poster-8.webp"
+  },
+  {
+   "title": "Project 02",
+   "year": "2025",
+   "video": "assets/work-2.mp4",
+   "hero": "assets/hero-2.mp4",
+   "poster": "assets/poster-2.webp"
   }
  ]
 }
